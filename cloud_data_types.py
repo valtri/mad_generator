@@ -3,6 +3,7 @@ from shutil import copyfile
 import random
 import time
 import string
+import logging
 
 class Vm:
     
@@ -14,6 +15,7 @@ class Vm:
         self.stime = round(time.time())
         self.__set_etime()
         self.__set_ip()
+        logging.debug('Vm object created')
 
     def __set_etime(self):
 
@@ -42,3 +44,12 @@ class Vm:
                     octet.append(str(random.choice(string.hexdigits.lower())))
                 octets.append(''.join(octet))
             self.ip = ':'.join(octets)
+
+class Image:
+    
+    def __init__(self, CONF):
+        self.id = uuid.uuid4().int & (1<<32)-1
+        self.uid = random.randint(1, CONF.users_count)
+        self.gid = random.randint(1, CONF.users_count/10)
+        self.regtime = round(time.time())
+        logging.debug('Image object created')
