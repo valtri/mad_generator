@@ -4,7 +4,8 @@ A standalone program that simulates cloud life and generates accounting records 
 
 ## Arguments
 
-Run `python mad.py --help` to see arguments
+Run `python mad.py --help` to see arguments  
+To see debug logs use `-d` or `--debug`
 
 ## Example
 
