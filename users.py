@@ -41,7 +41,15 @@ class Groups:
 class Datastores:
 
     def __init__(self):
-        self.datastores_dict = {}
+        self.datastores_count = 0
         logging.debug('Datastores object created')
-    
-    #TODO: finish datastores
+
+    def getNewDatastore(self):
+        self.datastores_count = self.datastores_count + 1
+
+        datastore_info = {
+            'datastore_id': self.datastores_count,
+            'datastore': 'datastore' + str(self.datastores_count)
+        }
+
+        return datastore_info

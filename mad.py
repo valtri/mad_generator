@@ -106,7 +106,7 @@ logging.debug(CONF)
 xml_operator = xml_operations.XmlOperator()
 cloud_users = users.Users()
 cloud_groups = users.Groups()
-
+cloud_datastores = users.Datastores()
 
 for x in range(10):
 
@@ -133,7 +133,7 @@ for x in range(10):
         'ip': vm.ip
     }
 
-    xml_operator.output('vm', **output_vm_kwargs_dict)
+    xml_operator.output(vm)
     #----
 
 for z in range(10):
@@ -150,15 +150,21 @@ for z in range(10):
     image.uname = cloud_users.users_dict[image.uid]
     image.gname = cloud_groups.groups_dict[image.gid]
 
+    datastore = cloud_datastores.getNewDatastore()
+
+    image.datastore_id = datastore['datastore_id']
+    image.datastore = datastore['datastore']
+
     output_image_kwargs_dict = {
         'id': image.id,
         'uid': image.uid,
         'uname': image.uname,
         'gid': image.gid,
         'gname': image.gname,
-        'regtime': image.regtime
-        #TODO: add datastore and finish
+        'regtime': image.regtime,
+        'datastore_id': image.datastore_id,
+        'datastore': image.datastore
     }
 
-    xml_operator.output('image' , **output_image_kwargs_dict)
+    xml_operator.output(image)
     # ----
