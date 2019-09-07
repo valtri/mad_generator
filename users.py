@@ -1,6 +1,7 @@
 import random
 import string
 import logging
+import time
 
 #TODO: rename file (consult with guru Taras)
 
@@ -53,3 +54,24 @@ class Datastores:
         }
 
         return datastore_info
+
+# class Regtimes:
+
+#     def __init__(self, first_time = time.time()):
+#         self.first_time = first_time
+#         self.last_time = None
+
+#     def getTime(self):
+#         if self.last_time:
+#             # return_time = self.last_time + random.randint
+#             return 'last time exists'
+#         else:
+#             self.last_time = self.first_time
+#             return self.first_time
+
+def generateRandomLowerString():
+    string_length = random.randint(10, 20)
+    letters = string.ascii_lowercase
+
+    return ''.join(random.choice(letters) for i in range(string_length))
+#TODO: maybe move it or make it class

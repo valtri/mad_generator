@@ -51,11 +51,16 @@ parser.add_argument(
 parser.add_argument(
     '--users-count',
     type=int,
-    default=100,
+    default=20,
     help='Users using simulated cloud'
 )
 
-#TODO: know about interval and finish it
+parser.add_argument(
+    '--groups-count',
+    type=int,
+    default=7,
+    help='Groups in simulated cloud'
+)
 
 parser.add_argument(
     '--cloud-name',
@@ -73,11 +78,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    '--flood-mode',
-    type=bool,
-    default=True,
-    help='Flood mode for generating with max speed'
+    '-f',
+    '--flood',
+    action='store_true',
+    default=False,
+    help='Flood mode'
 )
+
 #TODO: use/work with flood mode
 #TODO: in flood generate start/reg times
 
@@ -100,71 +107,62 @@ if CONF.debug:
 logging.debug('Arguments parsed:')
 logging.debug(CONF)
 
-# print(CONF.start_time)
 #TODO: remove print time and work with it
 
 xml_operator = xml_operations.XmlOperator()
-cloud_users = users.Users()
-cloud_groups = users.Groups()
 cloud_datastores = users.Datastores()
+
+for x in range(CONF.users_count):
+
+    # ---- modifying User
+    user = cloud_data_types.User(CONF)
+
+    xml_operator.output(user)
+    # ----
+
+# if CONF.flood:
 
 for x in range(10):
 
-    #---- modifying Vm
+    # ---- modifying Vm
     vm = cloud_data_types.Vm(CONF)
 
-    if vm.uid not in cloud_users.users_dict:
-        cloud_users.addUser(vm.uid)
-
-    if vm.gid not in cloud_groups.groups_dict:
-        cloud_groups.addGroup(vm.gid)
-
-    vm.uname = cloud_users.users_dict[vm.uid]
-    vm.gname = cloud_groups.groups_dict[vm.gid]
-
-    output_vm_kwargs_dict = {
-        'id': vm.id,
-        'uid': vm.uid,
-        'uname': vm.uname,
-        'gid': vm.gid,
-        'gname': vm.gname,
-        'stime': vm.stime,
-        'etime': vm.etime,
-        'ip': vm.ip
-    }
+    vm.uname = cloud_data_types.User.users_dict[vm.uid]['uname']
+    vm.gid = cloud_data_types.User.users_dict[vm.uid]['gid']
+    vm.gname = cloud_data_types.User.users_dict[vm.uid]['gname']
 
     xml_operator.output(vm)
-    #----
+    # ----
 
 for z in range(10):
 
     # ---- modifying Image
     image = cloud_data_types.Image(CONF)
 
-    if image.uid not in cloud_users.users_dict:
-        cloud_users.addUser(image.uid)
-
-    if image.gid not in cloud_groups.groups_dict:
-        cloud_groups.addGroup(image.gid)
-
-    image.uname = cloud_users.users_dict[image.uid]
-    image.gname = cloud_groups.groups_dict[image.gid]
+    image.uname = cloud_data_types.User.users_dict[image.uid]['uname']
+    image.gid = cloud_data_types.User.users_dict[image.uid]['gid']
+    image.gname = cloud_data_types.User.users_dict[image.uid]['gname']
 
     datastore = cloud_datastores.getNewDatastore()
 
     image.datastore_id = datastore['datastore_id']
     image.datastore = datastore['datastore']
 
-    output_image_kwargs_dict = {
-        'id': image.id,
-        'uid': image.uid,
-        'uname': image.uname,
-        'gid': image.gid,
-        'gname': image.gname,
-        'regtime': image.regtime,
-        'datastore_id': image.datastore_id,
-        'datastore': image.datastore
-    }
-
     xml_operator.output(image)
+    # ----
+
+for z in range(10):
+
+    # ---- modifying Host
+    host = cloud_data_types.Host()
+
+    xml_operator.output(host)
+    # ----
+
+for z in range(10):
+
+    # ---- modifying Cluster
+    cluster = cloud_data_types.Cluster()
+
+    xml_operator.output(cluster)
     # ----

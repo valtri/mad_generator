@@ -4,18 +4,18 @@ import random
 import time
 import string
 import logging
+import users
 
 class Vm:
     
     def __init__(self, CONF):
         self.id = uuid.uuid4().int & (1<<32)-1
         self.uid = random.randint(1, CONF.users_count)
-        self.gid = random.randint(1, CONF.users_count/10)
-        #TODO: randomize group max number, let user choose
         self.stime = round(time.time())
         self.__set_etime()
         self.__set_ip()
-        logging.debug('Vm object created')
+        logging.debug('Vm object created:')
+        logging.debug(self.__dict__)
 
     def __set_etime(self):
 
@@ -50,6 +50,42 @@ class Image:
     def __init__(self, CONF):
         self.id = uuid.uuid4().int & (1<<32)-1
         self.uid = random.randint(1, CONF.users_count)
-        self.gid = random.randint(1, CONF.users_count/10)
         self.regtime = round(time.time())
-        logging.debug('Image object created')
+        self.size = random.randint(15, 150)
+        self.cloudkeeper_appliance_mpuri = 'mpuri' + str(self.id)
+        #TODO: finish mpuri after lenka answer
+        logging.debug('Image object created:')
+        logging.debug(self.__dict__)
+
+class User:
+    count = 0
+    users_dict = {}
+
+    def __init__(self, CONF):
+        User.count = User.count + 1
+        self.id = User.count
+        self.uname = 'User' + str(self.id)
+        self.gid = random.randint(1, CONF.groups_count)
+        self.gname = 'Group' + str(self.gid)
+        self.identity = users.generateRandomLowerString()
+        User.users_dict[self.id] = self.__dict__
+        logging.debug('User object created:')
+        logging.debug(self.__dict__)
+        # TODO: finish User class and work with it )
+
+class Host:
+
+    def __init__(self):
+        self.id = uuid.uuid4().int & (1<<32)-1
+        self.benchmark_value = users.generateRandomLowerString()
+        logging.debug('Host object created:')
+        logging.debug(self.__dict__)
+
+class Cluster:
+
+    def __init__(self):
+        self.id = uuid.uuid4().int & (1<<32)-1
+        self.benchmark_type = users.generateRandomLowerString()
+        self.benchmark_value = users.generateRandomLowerString()
+        logging.debug('Cluster object created:')
+        logging.debug(self.__dict__)

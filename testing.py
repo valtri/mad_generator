@@ -1,5 +1,8 @@
 import users
 
-cloud_users = users.Users()
+regtimes = users.Regtimes()
+
+for x in range(20):
+    regtimes.getTime()
 
 # print(cloud_users.addUid())
