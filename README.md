@@ -6,9 +6,11 @@ A standalone program that simulates cloud life and generates accounting records 
 
 Run `python mad.py --help` to see arguments  
 To see debug logs use `-d` or `--debug`
+To run flood mode use `-f` or `--flood`
 
 ## Example
 
 ```
-python3 mad.py --output-type=opennebulaxml --count=5 --max-objects=10 --mode=vm
+python3 mad.py --output-type=opennebulaxml --count=5 --max-objects=10 --mode=vm -f
+
 ```
