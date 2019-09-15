@@ -55,19 +55,21 @@ class Datastores:
 
         return datastore_info
 
-# class Regtimes:
+class Regtimes:
 
-#     def __init__(self, first_time = time.time()):
-#         self.first_time = first_time
-#         self.last_time = None
+    def __init__(self, first_time = time.time()):
+        self.first_time = first_time
+        self.last_time = None
 
-#     def getTime(self):
-#         if self.last_time:
-#             # return_time = self.last_time + random.randint
-#             return 'last time exists'
-#         else:
-#             self.last_time = self.first_time
-#             return self.first_time
+    def getTime(self):
+        if self.last_time:
+            return_time = self.last_time + random.randint(1, random.randint(50, 150))
+            self.last_time = return_time
+            return return_time
+        else:
+            return_time = round(self.first_time)
+            self.last_time = return_time
+            return return_time
 
 def generateRandomLowerString():
     string_length = random.randint(10, 20)

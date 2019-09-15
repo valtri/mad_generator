@@ -4,7 +4,7 @@ import cloud_data_types
 import xml_operations
 import users
 import logging
-#TODO: make logs
+import random
 #TODO: allow to set level to logs
 
 parser = argparse.ArgumentParser(description='MAD Generator, simulator of Cloud life.')
@@ -85,9 +85,6 @@ parser.add_argument(
     help='Flood mode'
 )
 
-#TODO: use/work with flood mode
-#TODO: in flood generate start/reg times
-
 parser.add_argument(
     '-d',
     '--debug',
@@ -107,8 +104,6 @@ if CONF.debug:
 logging.debug('Arguments parsed:')
 logging.debug(CONF)
 
-#TODO: remove print time and work with it
-
 xml_operator = xml_operations.XmlOperator()
 cloud_datastores = users.Datastores()
 
@@ -120,49 +115,49 @@ for x in range(CONF.users_count):
     xml_operator.output(user)
     # ----
 
-# if CONF.flood:
+if CONF.flood:
 
-for x in range(10):
+    for x in range(random.randint(1, CONF.max_objects)):
 
-    # ---- modifying Vm
-    vm = cloud_data_types.Vm(CONF)
+        # ---- modifying Vm
+        vm = cloud_data_types.Vm(CONF)
 
-    vm.uname = cloud_data_types.User.users_dict[vm.uid]['uname']
-    vm.gid = cloud_data_types.User.users_dict[vm.uid]['gid']
-    vm.gname = cloud_data_types.User.users_dict[vm.uid]['gname']
+        vm.uname = cloud_data_types.User.users_dict[vm.uid]['uname']
+        vm.gid = cloud_data_types.User.users_dict[vm.uid]['gid']
+        vm.gname = cloud_data_types.User.users_dict[vm.uid]['gname']
 
-    xml_operator.output(vm)
-    # ----
+        xml_operator.output(vm)
+        # ----
 
-for z in range(10):
+    for z in range(10):
 
-    # ---- modifying Image
-    image = cloud_data_types.Image(CONF)
+        # ---- modifying Image
+        image = cloud_data_types.Image(CONF)
 
-    image.uname = cloud_data_types.User.users_dict[image.uid]['uname']
-    image.gid = cloud_data_types.User.users_dict[image.uid]['gid']
-    image.gname = cloud_data_types.User.users_dict[image.uid]['gname']
+        image.uname = cloud_data_types.User.users_dict[image.uid]['uname']
+        image.gid = cloud_data_types.User.users_dict[image.uid]['gid']
+        image.gname = cloud_data_types.User.users_dict[image.uid]['gname']
 
-    datastore = cloud_datastores.getNewDatastore()
+        datastore = cloud_datastores.getNewDatastore()
 
-    image.datastore_id = datastore['datastore_id']
-    image.datastore = datastore['datastore']
+        image.datastore_id = datastore['datastore_id']
+        image.datastore = datastore['datastore']
 
-    xml_operator.output(image)
-    # ----
+        xml_operator.output(image)
+        # ----
 
-for z in range(10):
+    for z in range(10):
 
-    # ---- modifying Host
-    host = cloud_data_types.Host()
+        # ---- modifying Host
+        host = cloud_data_types.Host()
 
-    xml_operator.output(host)
-    # ----
+        xml_operator.output(host)
+        # ----
 
-for z in range(10):
+    for z in range(10):
 
-    # ---- modifying Cluster
-    cluster = cloud_data_types.Cluster()
+        # ---- modifying Cluster
+        cluster = cloud_data_types.Cluster()
 
-    xml_operator.output(cluster)
-    # ----
+        xml_operator.output(cluster)
+        # ----

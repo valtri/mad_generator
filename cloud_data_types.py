@@ -53,7 +53,6 @@ class Image:
         self.regtime = round(time.time())
         self.size = random.randint(15, 150)
         self.cloudkeeper_appliance_mpuri = 'mpuri' + str(self.id)
-        #TODO: finish mpuri after lenka answer
         logging.debug('Image object created:')
         logging.debug(self.__dict__)
 
@@ -71,7 +70,6 @@ class User:
         User.users_dict[self.id] = self.__dict__
         logging.debug('User object created:')
         logging.debug(self.__dict__)
-        # TODO: finish User class and work with it )
 
 class Host:
 
