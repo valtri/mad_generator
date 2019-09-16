@@ -4,7 +4,8 @@ import random
 import time
 import string
 import logging
-import users
+import data_structures
+import helper
 
 class Vm:
     
@@ -66,7 +67,7 @@ class User:
         self.uname = 'User' + str(self.id)
         self.gid = random.randint(1, CONF.groups_count)
         self.gname = 'Group' + str(self.gid)
-        self.identity = users.generateRandomLowerString()
+        self.identity = helper.generateRandomLowerString()
         User.users_dict[self.id] = self.__dict__
         logging.debug('User object created:')
         logging.debug(self.__dict__)
@@ -75,7 +76,7 @@ class Host:
 
     def __init__(self):
         self.id = uuid.uuid4().int & (1<<32)-1
-        self.benchmark_value = users.generateRandomLowerString()
+        self.benchmark_value = helper.generateRandomLowerString()
         logging.debug('Host object created:')
         logging.debug(self.__dict__)
 
@@ -83,7 +84,7 @@ class Cluster:
 
     def __init__(self):
         self.id = uuid.uuid4().int & (1<<32)-1
-        self.benchmark_type = users.generateRandomLowerString()
-        self.benchmark_value = users.generateRandomLowerString()
+        self.benchmark_type = helper.generateRandomLowerString()
+        self.benchmark_value = helper.generateRandomLowerString()
         logging.debug('Cluster object created:')
         logging.debug(self.__dict__)
