@@ -7,15 +7,15 @@ import logging
 import data_structures
 import helper
 
+
 class Vm:
-    
     def __init__(self, CONF):
-        self.id = uuid.uuid4().int & (1<<32)-1
+        self.id = uuid.uuid4().int & (1 << 32) - 1
         self.uid = random.randint(1, CONF.users_count)
         self.stime = round(time.time())
         self.__set_etime()
         self.__set_ip()
-        logging.debug('Vm object created:')
+        logging.debug("Vm object created:")
         logging.debug(self.__dict__)
 
     def __set_etime(self):
@@ -34,28 +34,29 @@ class Vm:
         if ip_type == 1:
             octets = []
             for x in range(4):
-                octets.append(str(random.randint(0,255)))
-            self.ip = '.'.join(octets)
-    
+                octets.append(str(random.randint(0, 255)))
+            self.ip = ".".join(octets)
+
         else:
             octets = []
             for x in range(8):
                 octet = []
                 for x in range(4):
                     octet.append(str(random.choice(string.hexdigits.lower())))
-                octets.append(''.join(octet))
-            self.ip = ':'.join(octets)
+                octets.append("".join(octet))
+            self.ip = ":".join(octets)
+
 
 class Image:
-    
     def __init__(self, CONF):
-        self.id = uuid.uuid4().int & (1<<32)-1
+        self.id = uuid.uuid4().int & (1 << 32) - 1
         self.uid = random.randint(1, CONF.users_count)
         self.regtime = round(time.time())
         self.size = random.randint(15, 150)
-        self.cloudkeeper_appliance_mpuri = 'mpuri' + str(self.id)
-        logging.debug('Image object created:')
+        self.cloudkeeper_appliance_mpuri = "mpuri" + str(self.id)
+        logging.debug("Image object created:")
         logging.debug(self.__dict__)
+
 
 class User:
     count = 0
@@ -64,27 +65,27 @@ class User:
     def __init__(self, CONF):
         User.count = User.count + 1
         self.id = User.count
-        self.uname = 'User' + str(self.id)
+        self.uname = "User" + str(self.id)
         self.gid = random.randint(1, CONF.groups_count)
-        self.gname = 'Group' + str(self.gid)
+        self.gname = "Group" + str(self.gid)
         self.identity = helper.generateRandomLowerString()
         User.users_dict[self.id] = self.__dict__
-        logging.debug('User object created:')
+        logging.debug("User object created:")
         logging.debug(self.__dict__)
+
 
 class Host:
-
     def __init__(self):
-        self.id = uuid.uuid4().int & (1<<32)-1
+        self.id = uuid.uuid4().int & (1 << 32) - 1
         self.benchmark_value = helper.generateRandomLowerString()
-        logging.debug('Host object created:')
+        logging.debug("Host object created:")
         logging.debug(self.__dict__)
 
-class Cluster:
 
+class Cluster:
     def __init__(self):
-        self.id = uuid.uuid4().int & (1<<32)-1
+        self.id = uuid.uuid4().int & (1 << 32) - 1
         self.benchmark_type = helper.generateRandomLowerString()
         self.benchmark_value = helper.generateRandomLowerString()
-        logging.debug('Cluster object created:')
+        logging.debug("Cluster object created:")
         logging.debug(self.__dict__)

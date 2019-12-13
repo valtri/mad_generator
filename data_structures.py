@@ -2,25 +2,25 @@ import random
 import logging
 import time
 
-class Datastores:
 
+class Datastores:
     def __init__(self):
         self.datastores_count = 0
-        logging.debug('Datastores object created')
+        logging.debug("Datastores object created")
 
     def getNewDatastore(self):
         self.datastores_count = self.datastores_count + 1
 
         datastore_info = {
-            'datastore_id': self.datastores_count,
-            'datastore': 'datastore' + str(self.datastores_count)
+            "datastore_id": self.datastores_count,
+            "datastore": "datastore" + str(self.datastores_count),
         }
 
         return datastore_info
 
-class Regtimes:
 
-    def __init__(self, first_time = time.time()):
+class Regtimes:
+    def __init__(self, first_time=time.time()):
         self.first_time = first_time
         self.last_time = None
 
