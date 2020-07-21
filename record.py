@@ -76,6 +76,9 @@ class Record(object):
         self._datetime_fields = []
         # Fields which should contain time duration
         self._duration_fields = []
+        # Fields which should contain datetime in unix timestamp
+        self._unix_timestamp_fields = []
+
         # The dictionary into which all the information goes
         self._record_content = {}
     
@@ -127,6 +130,7 @@ class Record(object):
         Returns value converted to correct type if this is possible.
         Otherwise it raises an error.
         '''
+        #TODO pridat timestamp, duration
         try:
             # Convert any null equivalents to a None object
             if check_for_null(value):
@@ -332,7 +336,6 @@ class Record(object):
                 value = contents[key]
             except KeyError:
                 value = None
-
             # Check if we have an integer by trying to cast to an int.
             try:
                 value = int(value)
@@ -399,10 +402,27 @@ class Record(object):
             # cast an object to a datetime.
             if not isinstance(value, timedelta):
                 if key in self._mandatory_fields:
-                    raise InvalidRecordException("Mandatory datetime field " + key +
-                                   " doesn't contain a datetime.")
+                    raise InvalidRecordException("Mandatory duration field " + key +
+                                   " doesn't contain a duration.")
                 elif check_for_null(value):
                     contents[key] = None
                 elif value is not None:
                     raise InvalidRecordException("Duration field " + key +
                                     " doesn't contain an duration.")
+        for key in self._unix_timestamp_fields:
+            try:
+                value = contents[key]
+            except KeyError:
+                value = None
+
+            try:
+                value = int(value)
+            except (ValueError, TypeError):
+                if key in self._mandatory_fields:
+                    raise InvalidRecordException("Mandatory timestamp field " + key +
+                                                 " doesn't contain an timestamp.")
+                elif check_for_null(value):
+                    contents[key] = None
+                elif value is not None:
+                    raise InvalidRecordException("timestamp field " + key +
+                                                 " doesn't contain an timestamp.")

@@ -35,16 +35,16 @@ class CloudRecord(Record):
         Record.__init__(self)
         
         # Fields which are required by the message format.
-        self._mandatory_fields = ["VMUUID", "SiteName"]
+        self._mandatory_fields = ["VMUUID", "SiteName", "MachineName"]
             
         # This list allows us to specify the order of lines when we construct records.
-        self._msg_fields  = ["RecordCreateTime", "VMUUID", "SiteName", "CloudComputeService", "MachineName", 
-                             "LocalUserId", "LocalGroupId", "GlobalUserName", "FQAN",
-                             "Status", "StartTime", "EndTime", "SuspendDuration", 
-                             "WallDuration", "CpuDuration", "CpuCount", 
-                             "NetworkType", "NetworkInbound", "NetworkOutbound", "PublicIPCount", 
-                             "Memory", "Disk", "BenchmarkType", "Benchmark", 
-                             "StorageRecordId", "ImageId", "CloudType"]
+        self._msg_fields = ["VMUUID", "SiteName", "CloudComputeService", "MachineName",
+                            "LocalUserId", "LocalGroupId", "GlobalUserName", "FQAN",
+                            "Status", "StartTime", "EndTime", "SuspendDuration",
+                            "WallDuration", "CpuDuration", "CpuCount",
+                            "NetworkType", "NetworkInbound", "NetworkOutbound", "PublicIPCount",
+                            "Memory", "Disk", "BenchmarkType", "Benchmark",
+                            "StorageRecordId", "ImageId", "CloudType"]
         
         # This list specifies the information that goes in the database.
         self._db_fields = self._msg_fields[:9] + ['VO', 'VOGroup', 'VORole'] + self._msg_fields[9:]
@@ -53,11 +53,11 @@ class CloudRecord(Record):
         self._ignored_fields = ["UpdateTime"]
         
         # Fields which will have an integer stored in them
-        self._int_fields = [ "SuspendDuration", "WallDuration", "CpuDuration", "CpuCount", 
+        self._int_fields = [ "?SuspendDuration", "WallDuration", "CpuDuration", "CpuCount",
                              "NetworkInbound", "NetworkOutbound", "PublicIPCount", "Memory", "Disk"]
-        
+        #TODO suspend duration?
         self._float_fields = ['Benchmark']
-        self._datetime_fields = ["RecordCreateTime", "StartTime", "EndTime"]
+        self._datetime_fields = ["StartTime", "EndTime"]
     
     def _check_fields(self):
         '''
@@ -99,6 +99,7 @@ class CloudRecord(Record):
         if self._record_content['CpuCount'] is None:
             self._record_content['CpuCount'] = 0
 
+        # TODO do we have to check this?
         # Check the values of StartTime and EndTime
         # self._check_start_end_times()
 
@@ -128,24 +129,4 @@ class CloudRecord(Record):
             
         except ValueError:
             raise InvalidRecordException("Cannot parse an integer from StartTime or EndTime.")
-        
-        
-cloud = CloudRecord()
-json = {"Memory": 8192,
-"Status": "started",
-"SiteName": "CESNET-MCC",
-"MachineName": "k8s-nodes-2",
-"WallDuration": 14018392,
-"CpuDuration": 56073568,
-"LocalUserId": "05228772e737467bbd5f5138d362d6a2",
-"FQAN": "vo.geoss.eu",
-"LocalGroupId": "24869cfe0e094f59a3110429e068eef2",
-"Disk": "3",
-"CpuCount": 4,
-"StartTime": 1561978603,
-"VMUUID": "13fed839-6381-4f6d-95dd-c40a825da36c",
-"CloudType": "caso/1.3.3 (OpenStack)",
-"GlobalUserName": "529a87e5ce04cd5ddd7161734d02df0e2199a11452430803e714cb1309cc3907@egi.eu",
-"CloudComputeService": "CESNET-MCC"}
-cloud.set_all(json)
-print(cloud.get_msg())
+

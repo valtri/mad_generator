@@ -44,7 +44,7 @@ class StorageRecord(Record):
                        "LocalUser", "LocalGroup", "UserIdentity",
                        "Group", "SubGroup", "Role", "MeasureTime", "ValidDuration",
                        "ResourceCapacityUsed", "LogicalCapacityUsed"]
-
+    #site, start time, end time????
     ALL_FIELDS = DB_FIELDS
     
     def __init__(self):
@@ -207,27 +207,6 @@ class StorageRecord(Record):
             ur.appendChild(l_capacity_used)
 
         doc.appendChild(ur)
-        return doc.documentElement.toxml()
+        return doc.documentElement.toprettyxml()
 
-a = StorageRecord()
-json = {}
-json["RecordId"] = "recordId"
-json["CreateTime"]= dt.datetime.now()
-json["StorageSystem"] = "ss"
-json["StorageShare"] = "50"
-json["StorageMedia"] = "video"
-json["FileCount"] = "1000"
-json["DirectoryPath"] = "/path/to/directory"
-json["LocalUser"] = "me"
-json["LocalGroup"] = "elixir"
-json["MeasureTime"] = dt.datetime.now()
-json["ValidDuration"] = dt.timedelta(0.051)
-json["ResourceCapacityUsed"] = 50
-json["LogicalCapacityUsed"] = 20
-json["Group"] = "grupa"
-json["Role"] = "role"
-json["StorageClass"] = "?????"
-json["UserIdentity"] = "meine identitat"
-a.set_all(json)
 
-print(a.get_ur())
