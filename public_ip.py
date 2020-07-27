@@ -4,6 +4,7 @@ from datetime import timedelta
 
 
 class PublicIpUsageRecord(Record):
+    all_records = []
     def __init__(self):
         Record.__init__(self)
         self._mandatory_fields = ["MeasurementTime", "SiteName", "CloudType","LocalUser","LocalGroup","GlobalUserName",
@@ -17,7 +18,7 @@ class PublicIpUsageRecord(Record):
 
         self._int_fields = ["IpCount",]
         self._unix_timestamp_fields = ["MeasurementTime",]
-
+        PublicIpUsageRecord.all_records.append(self)
     def _check_fields(self):
         Record._check_fields(self)
         self._check_timestamp()

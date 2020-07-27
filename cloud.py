@@ -29,6 +29,7 @@ class CloudRecord(Record):
     It stores its information in a dictionary self._record_content.  The keys 
     are in the same format as in the messages, and are case-sensitive.
     '''
+    all_records = []
     def __init__(self):
         '''Provide the necessary lists containing message information.'''
         
@@ -53,12 +54,13 @@ class CloudRecord(Record):
         self._ignored_fields = ["UpdateTime"]
         
         # Fields which will have an integer stored in them
-        self._int_fields = [ "?SuspendDuration", "WallDuration", "CpuDuration", "CpuCount",
+        self._int_fields = [ "SuspendDuration", "WallDuration", "CpuDuration", "CpuCount",
                              "NetworkInbound", "NetworkOutbound", "PublicIPCount", "Memory", "Disk"]
         #TODO suspend duration?
         self._float_fields = ['Benchmark']
         self._datetime_fields = ["StartTime", "EndTime"]
-    
+        CloudRecord.all_records.append(self)
+
     def _check_fields(self):
         '''
         Add extra checks to those made in every record.
@@ -84,8 +86,7 @@ class CloudRecord(Record):
             # NOT NULL in the database, so we set it to something
             # meaningful. In this case the float 0.0.
             self._record_content['Benchmark'] = 0.0
-            
-            
+
         self._record_content['VORole'] = role
         self._record_content['VOGroup'] = group
         self._record_content['VO'] = vo

@@ -36,17 +36,18 @@ class StorageRecord(Record):
     '''
     
     MANDATORY_FIELDS = ["RecordId", "CreateTime", "StorageSystem",
-                        "MeasureTime", "ValidDuration", "ResourceCapacityUsed"]
-
+                         "ResourceCapacityUsed", "StartTime", "EndTime"]
+# "MeasureTime", "ValidDuration",
     # This list specifies the information that goes in the database.
     DB_FIELDS = ["RecordId", "CreateTime", "StorageSystem", "StorageShare",
-                       "StorageMedia", "StorageClass", "FileCount", "DirectoryPath",
-                       "LocalUser", "LocalGroup", "UserIdentity",
-                       "Group", "SubGroup", "Role", "MeasureTime", "ValidDuration",
-                       "ResourceCapacityUsed", "LogicalCapacityUsed"]
-    #site, start time, end time????
+                 "StorageMedia", "StorageClass", "FileCount", "DirectoryPath",
+                 "LocalUser", "LocalGroup", "UserIdentity",
+                 "Group", "SubGroup", "Role", "ResourceCapacityUsed", "LogicalCapacityUsed",
+                 #"MeasureTime", "ValidDuration"]
+                 "StartTime", "EndTime", "ResourceCapacityAllocated"]
+    #TODO site, start time, end time????
     ALL_FIELDS = DB_FIELDS
-    
+    all_records = []
     def __init__(self):
         '''Provide the necessary lists containing message information.'''
         
@@ -67,6 +68,7 @@ class StorageRecord(Record):
         self._duration_fields = ["ValidDuration",]
         # Fields which will have an integer stored in them
         self._int_fields = ["FileCount", "ResourceCapacityUsed", "LogicalCapacityUsed"]
+        StorageRecord.all_records.append(self)
 
     def get_apel_db_insert(self, source=None):
         '''
@@ -185,15 +187,25 @@ class StorageRecord(Record):
         # Append Subject Identity Block
         ur.appendChild(s_identity)
 
-        measure_time_text = time.strftime('%Y-%m-%dT%H:%M:%SZ', self.get_field('MeasureTime').timetuple())
-        m_time = doc.createElement('sr:MeasureTime')
-        m_time.appendChild(doc.createTextNode(measure_time_text))
+        # measure_time_text = time.strftime('%Y-%m-%dT%H:%M:%SZ', self.get_field('MeasureTime').timetuple())
+        # m_time = doc.createElement('sr:MeasureTime')
+        # m_time.appendChild(doc.createTextNode(measure_time_text))
+        # ur.appendChild(m_time)
+        #
+        # valid_duration_text = duration_isoformat(self.get_field('ValidDuration'))
+        # v_time = doc.createElement('sr:ValidDuration')
+        # v_time.appendChild(doc.createTextNode(valid_duration_text))
+        # ur.appendChild(v_time)
+
+        start_time_text = time.strftime('%Y-%m-%dT%H:%M:%SZ', self.get_field('StartTime').timetuple())
+        m_time = doc.createElement('sr:StartTime')
+        m_time.appendChild(doc.createTextNode(start_time_text))
         ur.appendChild(m_time)
 
-        valid_duration_text = duration_isoformat(self.get_field('ValidDuration'))
-        v_time = doc.createElement('sr:ValidDuration')
-        v_time.appendChild(doc.createTextNode(valid_duration_text))
-        ur.appendChild(v_time)
+        end_time_text = time.strftime('%Y-%m-%dT%H:%M:%SZ', self.get_field('EndTime').timetuple())
+        m_time = doc.createElement('sr:EndTime')
+        m_time.appendChild(doc.createTextNode(end_time_text))
+        ur.appendChild(m_time)
 
         resource_capacity_used = self.get_field('ResourceCapacityUsed')
         r_capacity_used = doc.createElement('sr:ResourceCapacityUsed')
