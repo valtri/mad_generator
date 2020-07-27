@@ -48,14 +48,15 @@ class CloudRecord(Record):
                             "StorageRecordId", "ImageId", "CloudType"]
         
         # This list specifies the information that goes in the database.
-        self._db_fields = self._msg_fields[:9] + ['VO', 'VOGroup', 'VORole'] + self._msg_fields[9:]
+        self._db_fields = self._msg_fields[:9] + ['VO', 'VOGroup', 'VORole', 'SuspendTime', "StorageUsage", "CpuChange"] + self._msg_fields[9:]
         self._all_fields = self._db_fields
         
-        self._ignored_fields = ["UpdateTime"]
+        self._ignored_fields = ["UpdateTime", "SuspendTime", "StorageUsage", "CpuChange"]
         
         # Fields which will have an integer stored in them
         self._int_fields = [ "SuspendDuration", "WallDuration", "CpuDuration", "CpuCount",
-                             "NetworkInbound", "NetworkOutbound", "PublicIPCount", "Memory", "Disk"]
+                             "NetworkInbound", "NetworkOutbound", "PublicIPCount", "Memory",
+                             "Disk", "StorageUsage"]
         #TODO suspend duration?
         self._float_fields = ['Benchmark']
         self._datetime_fields = ["StartTime", "EndTime"]

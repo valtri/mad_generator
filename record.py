@@ -74,8 +74,6 @@ class Record(object):
         self._float_fields = []
         # Fields which should contain datetime (will be stored as a integers)
         self._datetime_fields = []
-        # Fields which should contain time duration
-        self._duration_fields = []
         # Fields which should contain datetime in unix timestamp
         self._unix_timestamp_fields = []
 
@@ -180,6 +178,14 @@ class Record(object):
                 except ValueError as e:
                     # Given timestamp is probably out of range
                     raise InvalidRecordException(e)
+            elif name in self._unix_timestamp_fields:
+                try:
+                    timestamp = int(value)
+                    if timestamp == 0:
+                        raise InvalidRecordException("Epoch time  mustn't be 0.")
+                except ValueError:
+                    raise InvalidRecordException("Cannot parse an integer from timestamp.")
+
             else:
                 return value
         except ValueError:
@@ -394,39 +400,10 @@ class Record(object):
                     raise InvalidRecordException("Datetime field " + key +
                                     " doesn't contain an datetime.")
 
-        for key in self._duration_fields:
+        for key in self._unix_timestamp_fields:
             try:
-                value = contents[key]
-            except KeyError:
-                value = None
-
-            # Check if we have a duration in this field.
-            # We have to check this slightly differently than an int/float
-            # as there doesn't seem to be a nice function to attempt to
-            # cast an object to a datetime.
-            if not isinstance(value, timedelta):
-                if key in self._mandatory_fields:
-                    raise InvalidRecordException("Mandatory duration field " + key +
-                                   " doesn't contain a duration.")
-                elif check_for_null(value):
-                    contents[key] = None
-                elif value is not None:
-                    raise InvalidRecordException("Duration field " + key +
-                                    " doesn't contain an duration.")
-        # for key in self._unix_timestamp_fields:
-        #     try:
-        #         value = contents[key]
-        #     except KeyError:
-        #         value = None
-        #
-        #     try:
-        #         value = int(value)
-        #     except (ValueError, TypeError):
-        #         if key in self._mandatory_fields:
-        #             raise InvalidRecordException("Mandatory timestamp field " + key +
-        #                                          " doesn't contain an timestamp.")
-        #         elif check_for_null(value):
-        #             contents[key] = None
-        #         elif value is not None:
-        #             raise InvalidRecordException("timestamp field " + key +
-        #                                          " doesn't contain an timestamp.")
+                timestamp = int(self._record_content[key])
+                if timestamp == 0:
+                    raise InvalidRecordException("Epoch time  mustn't be 0.")
+            except ValueError:
+                raise InvalidRecordException("Cannot parse an integer from timestamp.")

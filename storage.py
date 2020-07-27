@@ -20,7 +20,6 @@ import datetime as dt
 import time
 from record import Record
 from xml.dom.minidom import Document
-from isodate import duration_isoformat
 import logging
 
 # get the relevant logger
@@ -48,6 +47,7 @@ class StorageRecord(Record):
     #TODO site, start time, end time????
     ALL_FIELDS = DB_FIELDS
     all_records = []
+
     def __init__(self):
         '''Provide the necessary lists containing message information.'''
         
