@@ -4,7 +4,7 @@ from cloud import CloudRecord
 from storage import StorageRecord
 from public_ip import PublicIpUsageRecord
 from random import choice, choices
-
+from time import time
 
 class User:
     count = 0
@@ -45,9 +45,9 @@ class User:
             self.vms.append(cr)
 
 
-def get_storage_json(vm: CloudRecord, time: datetime):
+def get_storage_json(vm: CloudRecord, time: int):
     return {"RecordId": vm.get_field("LocalUserId") + str(time),  # TODO random generate
-            "CreateTime": time,
+            "CreateTime": datetime.fromtimestamp(time),
             "StorageSystem": "ss",
             "StorageShare": "50",
             "StorageMedia": "disk",
@@ -55,8 +55,8 @@ def get_storage_json(vm: CloudRecord, time: datetime):
             "DirectoryPath": None,
             "LocalUser": vm.get_field("LocalUserId"),
             "LocalGroup": vm.get_field("LocalGroupId"),
-            "StartTime": time,  # TODO
-            "EndTime": time,  # TODO ako tu ma byt start a end
+            "StartTime": datetime.fromtimestamp(time),  # TODO
+            "EndTime": datetime.fromtimestamp(time),  # TODO ako tu ma byt start a end
             "ResourceCapacityUsed": vm.get_field("StorageUsage"),
             "LogicalCapacityUsed": vm.get_field("StorageUsage"),
             "ResourceCapacityAllocated": vm.get_field("StorageUsage"),
@@ -66,8 +66,8 @@ def get_storage_json(vm: CloudRecord, time: datetime):
             "UserIdentity": vm.get_field("GlobalUserName")}
 
 
-def get_ip_json(vm: CloudRecord, time: datetime):
-    return {"MeasurementTime": datetime.timestamp(time),
+def get_ip_json(vm: CloudRecord, time: int):
+    return {"MeasurementTime": time,
             "SiteName": vm.get_field("SiteName"),
             "CloudComputeService": vm.get_field("CloudComputeService"),
             "CloudType": vm.get_field("CloudType"),
@@ -87,29 +87,29 @@ def generate_users(user_count):
     return users
 
 
-def generate_cron_intervals(cron_interval_count, start_time, end_time = None):
+def generate_cron_intervals(cron_interval_count, start_time: int, end_time: int = None):
     if end_time is None:
-        end_time = datetime.now()
+        end_time = time()
     interval_length = (end_time - start_time) / cron_interval_count
     return [start_time + i*interval_length for i in range(1, cron_interval_count)]
 
 
-def generate_event_times(event_count, start_time: datetime, end_time: datetime = None):
+def generate_event_times(event_count, start_time: int, end_time: int = None):
     if end_time is None:
-        end_time = datetime.now()
-    interval_length = int((end_time - start_time).total_seconds() / event_count)
-    res = [start_time,]
+        end_time = time()
+    interval_length = int((end_time - start_time) / event_count)
+    res = [start_time, ]
     for i in range(event_count):
-        res.append(res[-1] + timedelta(seconds=randint(0.8*interval_length, 1.2*interval_length)))
+        res.append(res[-1] + randint(0.8*interval_length, 1.2*interval_length))
     return res
 
 
-def start_machine(vm: CloudRecord, event_time: datetime): #DONE
+def start_machine(vm: CloudRecord, event_time: int): #DONE
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
     if vm.get_field("Status") == "suspended":
         vm.set_field("SuspendDuration",
-                     vm.get_field("SuspendDuration") + (event_time - vm.get_field("SuspendTime")).total_seconds() )
+                     vm.get_field("SuspendDuration") + (event_time - vm.get_field("SuspendTime")))
     vm.set_field("Status", "started")
     if vm.get_field("StartTime") is None:
         vm.set_field("StartTime", event_time)
@@ -117,37 +117,37 @@ def start_machine(vm: CloudRecord, event_time: datetime): #DONE
     print("Machine started at: wall time %s cpu time %s" % (vm.get_field("WallDuration"), vm.get_field("CpuDuration")))
 
 
-def finish_machine(vm: CloudRecord, event_time: datetime): # DONE
+def finish_machine(vm: CloudRecord, event_time: int): # DONE
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
     if vm.get_field("Status") == "started":
         vm.set_field("WallDuration",
-                     vm.get_field("WallDuration") + (event_time - vm.get_field("CpuChange")).total_seconds())
+                     vm.get_field("WallDuration") + (event_time - vm.get_field("CpuChange")))
         vm.set_field("CpuDuration",
                      vm.get_field("CpuDuration") +
-                     vm.get_field("CpuCount")*(event_time - vm.get_field("CpuChange")).total_seconds())
+                     vm.get_field("CpuCount")*(event_time - vm.get_field("CpuChange")))
 
     if vm.get_field("Status") == "suspended":
         vm.set_field("SuspendDuration",
-                     vm.get_field("SuspendDuration") + (event_time - vm.get_field("SuspendTime")).total_seconds())
+                     vm.get_field("SuspendDuration") + (event_time - vm.get_field("SuspendTime")))
 
     vm.set_field("Status", "completed")
     vm.set_field("EndTime", event_time)
     print("Machine finished at: wall time %s cpu time %s" % (vm.get_field("WallDuration"), vm.get_field("CpuDuration")))
 
 
-def suspend_machine(vm: CloudRecord, event_time: datetime):
+def suspend_machine(vm: CloudRecord, event_time: int):
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
     vm.set_field("Status", "suspended")
     vm.set_field("SuspendTime", event_time)
-    if vm.get_field("StartTime") is not None:
-        vm.set_field("WallDuration", (event_time - vm.get_field("CpuChange")).total_seconds())
+    if vm.get_field("StartTime") is not None: #todo premysliet
+        vm.set_field("WallDuration", (event_time - vm.get_field("CpuChange")))
         vm.set_field("CpuDuration", vm.get_field("CpuDuration") + vm.get_field("WallDuration")*vm.get_field("CpuCount"))
     print("Machine suspended, wall time %s cpu time %s" % (vm.get_field("WallDuration"), vm.get_field("CpuDuration")))
 
 
-def allocate_ip(vm: CloudRecord, event_time: datetime):
+def allocate_ip(vm: CloudRecord, event_time: int):
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
     # version = choice([4,6])
@@ -156,7 +156,7 @@ def allocate_ip(vm: CloudRecord, event_time: datetime):
     vm.set_field("PublicIPCount", vm.get_field("PublicIPCount") + randint(1,5))
 
 
-def free_ip(vm: CloudRecord, event_time: datetime):
+def free_ip(vm: CloudRecord, event_time: int):
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
     amount = randint(1,5)
@@ -165,13 +165,13 @@ def free_ip(vm: CloudRecord, event_time: datetime):
     vm.set_field("PublicIPCount", vm.get_field("PublicIPCount") - amount)
 
 
-def allocate_memory(vm:CloudRecord, event_time : datetime):
+def allocate_memory(vm:CloudRecord, event_time : int):
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
     vm.set_field("Memory", vm.get_field("Memory") + (10^9)*randint(1,16))
 
 
-def free_memory(vm:CloudRecord, event_time : datetime):
+def free_memory(vm:CloudRecord, event_time : int):
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
     amount = (10^9)*randint(1,16)
@@ -180,7 +180,7 @@ def free_memory(vm:CloudRecord, event_time : datetime):
     vm.set_field("Memory", vm.get_field("Memory") - amount)
 
 
-def allocate_storage(vm: CloudRecord, event_time: datetime):
+def allocate_storage(vm: CloudRecord, event_time: int):
     st = StorageRecord()
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
@@ -189,7 +189,7 @@ def allocate_storage(vm: CloudRecord, event_time: datetime):
     st.set_all(get_storage_json(vm, event_time))
 
 
-def free_storage(vm: CloudRecord, event_time: datetime):
+def free_storage(vm: CloudRecord, event_time: int):
     st = StorageRecord()
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
@@ -201,15 +201,15 @@ def free_storage(vm: CloudRecord, event_time: datetime):
     st.set_all(get_storage_json(vm, event_time))
 
 
-def allocate_cpu(vm: CloudRecord, event_time: datetime):
+def allocate_cpu(vm: CloudRecord, event_time: int):
     amount = randint(1,32)
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
     if vm.get_field("Status") == "started":
-        print("Time from last change: ", (event_time - vm.get_field("CpuChange")).total_seconds())
-        vm.set_field("WallDuration", vm.get_field("WallDuration") + (event_time - vm.get_field("CpuChange")).total_seconds()) #nvm
+        print("Time from last change: ", (event_time - vm.get_field("CpuChange")))
+        vm.set_field("WallDuration", vm.get_field("WallDuration") + (event_time - vm.get_field("CpuChange"))) #nvm
         vm.set_field("CpuDuration", vm.get_field("CpuDuration")
-                     + (event_time - vm.get_field("CpuChange")).total_seconds()*vm.get_field("CpuCount"))
+                     + (event_time - vm.get_field("CpuChange"))*vm.get_field("CpuCount"))
     vm.set_field("CpuChange", event_time)
     vm.set_field("CpuCount", vm.get_field("CpuCount") + amount)
 
@@ -217,17 +217,17 @@ def allocate_cpu(vm: CloudRecord, event_time: datetime):
     print("wall time %s cpu time %s" % (vm.get_field("WallDuration"), vm.get_field("CpuDuration")))
 
 
-def free_cpu(vm: CloudRecord, event_time: datetime):
+def free_cpu(vm: CloudRecord, event_time: int):
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
     amount = randint(1, 32)
     if amount > vm.get_field("CpuCount"):
         amount = vm.get_field("CpuCount")
-    print("Time from last change: ", (event_time - vm.get_field("CpuChange")).total_seconds() )
+    print("Time from last change: ", (event_time - vm.get_field("CpuChange")))
     if vm.get_field("Status") == "started":
-        vm.set_field("WallDuration", vm.get_field("WallDuration") + (event_time - vm.get_field("StartTime")).total_seconds())
+        vm.set_field("WallDuration", vm.get_field("WallDuration") + (event_time - vm.get_field("StartTime")))
         vm.set_field("CpuDuration", vm.get_field("CpuDuration")
-                     + (event_time - vm.get_field("CpuChange")).total_seconds()*vm.get_field("CpuCount"))
+                     + (event_time - vm.get_field("CpuChange"))*vm.get_field("CpuCount"))
     vm.set_field("CpuChange", event_time)
     vm.set_field("CpuCount", vm.get_field("CpuCount") - amount)
 
@@ -289,15 +289,15 @@ start_time = datetime.now() - timedelta(seconds=1000000)
 cron_interval_count = 10
 event_count = 20
 user_count = 1
-cron_intervals = generate_cron_intervals(cron_interval_count, start_time)
+cron_intervals = generate_cron_intervals(cron_interval_count, int(datetime.timestamp(start_time)))
 
 users = generate_users(user_count)
 for user in users:
     user.generate_vms(randint(2,6))
     for vm in user.vms:
-        events = generate_event_times(event_count, start_time)
+        events = generate_event_times(event_count, int(datetime.timestamp(start_time)))
         simulate_life(vm, events, cron_intervals)
         print("DEATH")
 
-# for r in StorageRecord.all_records:
-#     print(r.get_ur())
+for r in StorageRecord.all_records:
+    print(r.get_ur())
