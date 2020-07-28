@@ -10,37 +10,36 @@ parser = argparse.ArgumentParser(description="MAD Generator, simulator of Cloud 
 
 parser.add_argument(
     "--output-type",
-    choices=["opennebulaxml", "storagerecords"],
+    choices=["opennebulaxml", "records"],
     required=True,
-    help="Output type of MAD Generator. opennebulaxml (OpenNebula XML) or storagerecords (Storage Records)",
-)
+    help="Output type of MAD Generator. opennebulaxml (OpenNebula XML) or records",
+) #doplnit
 
 parser.add_argument(
     "--count", type=int, required=True, help="The number of events to generate"
-)
+) #included
 
 parser.add_argument(
     "--start-time",
     type=datetime.datetime.fromisoformat,
-    default=datetime.datetime.today(),
+    default=datetime.datetime.today() - datetime.timedelta(days=1000),
     help="First TimeStamp of whole simulation - format YYYY-MM-DD",
-)
+)  # included
 
 parser.add_argument(
     "--max-objects",
     type=int,
     required=True,
     help="Max number of available existing objects",
-)
+)  # included
 
-# TODO: add average-filling (density)
 
 parser.add_argument(
     "--average-occupancy",
     type=int,
     default=50,
-    help="The percantage number of objects out of the maximum, which should exist on average",
-)
+    help="The percentage number of objects out of the maximum, which should exist on average",
+)  # included
 
 # parser.add_argument(
 #     '--cron-interval',
@@ -53,16 +52,16 @@ parser.add_argument(
 
 parser.add_argument(
     "--users-count", type=int, default=20, help="Users using simulated cloud"
-)
+) #included
 
 parser.add_argument(
     "--groups-count", type=int, default=7, help="Groups in simulated cloud"
-)
+) #TODO include
 
 parser.add_argument(
     "--cloud-name", type=str, default="MADCLOUD", help="name of the cloud"
-)
-# TODO: use name
+) # SiteName/CloudType/CloudComputeService
+# TODO include
 
 parser.add_argument(
     "--mode",
@@ -84,7 +83,6 @@ parser.add_argument(
 )
 
 CONF = parser.parse_args()
-
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(filename)s:%(lineno)d - #%(process)d %(levelname)s: %(message)s",
@@ -98,48 +96,73 @@ logging.debug(CONF)
 xml_operator = xml_operations.XmlOperator()
 cloud_datastores = data_structures.Datastores()
 
-for x in range(CONF.users_count):
+if CONF.output_type == "opennebulaxml":
 
-    user = cloud_data_types.User(CONF)
+    for x in range(CONF.users_count):
 
-    xml_operator.output(user)
+        user = cloud_data_types.User(CONF)
+        print(user.uname)
+        xml_operator.output(user)
 
+    #flood means generating all types of outputs i.e. image, cluster, host, vm
+    if CONF.flood:
 
-if CONF.flood:
+        for x in range(random.randint(1, CONF.max_objects)):
 
-    for x in range(random.randint(1, CONF.max_objects)):
+            vm = cloud_data_types.Vm(CONF)
 
-        vm = cloud_data_types.Vm(CONF)
+            vm.uname = cloud_data_types.User.users_dict[vm.uid]["uname"]
+            vm.gid = cloud_data_types.User.users_dict[vm.uid]["gid"]
+            vm.gname = cloud_data_types.User.users_dict[vm.uid]["gname"]
 
-        vm.uname = cloud_data_types.User.users_dict[vm.uid]["uname"]
-        vm.gid = cloud_data_types.User.users_dict[vm.uid]["gid"]
-        vm.gname = cloud_data_types.User.users_dict[vm.uid]["gname"]
+            xml_operator.output(vm)
 
-        xml_operator.output(vm)
+        for z in range(10):
 
-    for z in range(10):
+            image = cloud_data_types.Image(CONF)
 
-        image = cloud_data_types.Image(CONF)
+            image.uname = cloud_data_types.User.users_dict[image.uid]["uname"]
+            image.gid = cloud_data_types.User.users_dict[image.uid]["gid"]
+            image.gname = cloud_data_types.User.users_dict[image.uid]["gname"]
 
-        image.uname = cloud_data_types.User.users_dict[image.uid]["uname"]
-        image.gid = cloud_data_types.User.users_dict[image.uid]["gid"]
-        image.gname = cloud_data_types.User.users_dict[image.uid]["gname"]
+            datastore = cloud_datastores.getNewDatastore()
 
-        datastore = cloud_datastores.getNewDatastore()
+            image.datastore_id = datastore["datastore_id"]
+            image.datastore = datastore["datastore"]
 
-        image.datastore_id = datastore["datastore_id"]
-        image.datastore = datastore["datastore"]
+            xml_operator.output(image)
 
-        xml_operator.output(image)
+        for z in range(10):
 
-    for z in range(10):
+            host = cloud_data_types.Host()
 
-        host = cloud_data_types.Host()
+            xml_operator.output(host)
 
-        xml_operator.output(host)
+        for z in range(10):
 
-    for z in range(10):
+            cluster = cloud_data_types.Cluster()
 
-        cluster = cloud_data_types.Cluster()
+            xml_operator.output(cluster)
 
-        xml_operator.output(cluster)
+else:
+    import generator
+    generator.main(CONF.start_time,
+                   10,
+                   CONF.count,
+                   CONF.users_count,
+                   CONF.max_objects*(-1+2*CONF.average_occupancy/100),
+                   CONF.max_objects,
+                   CONF.groups_count,
+                   CONF.cloud_name)
+    if CONF.mode == "vm" or CONF.flood:
+        for rec in generator.CloudRecord.all_records:
+            print(rec.get_msg())
+
+    if CONF.mode == "network" or CONF.flood:
+        for rec in generator.PublicIpUsageRecord.all_records:
+            print(rec.get_msg())
+
+    if CONF.mode == "storage" or CONF.flood:
+        for rec in generator.StorageRecord.all_records:
+            print(rec.get_ur())
+
