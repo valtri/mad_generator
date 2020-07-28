@@ -13,25 +13,28 @@ parser.add_argument(
     choices=["opennebulaxml", "records"],
     required=True,
     help="Output type of MAD Generator. opennebulaxml (OpenNebula XML) or records",
-) #doplnit
+)
 
 parser.add_argument(
-    "--count", type=int, required=True, help="The number of events to generate"
-) #included
+    "--count",
+    type=int,
+    required=True,
+    help="The number of events to generate"
+)
 
 parser.add_argument(
     "--start-time",
     type=datetime.datetime.fromisoformat,
-    default=datetime.datetime.today() - datetime.timedelta(days=1000),
+    default=datetime.datetime.today() - datetime.timedelta(days=100),
     help="First TimeStamp of whole simulation - format YYYY-MM-DD",
-)  # included
+)
 
 parser.add_argument(
     "--max-objects",
     type=int,
     required=True,
     help="Max number of available existing objects",
-)  # included
+)
 
 
 parser.add_argument(
@@ -39,15 +42,15 @@ parser.add_argument(
     type=int,
     default=50,
     help="The percentage number of objects out of the maximum, which should exist on average",
-)  # included
+)
 
-# parser.add_argument(
-#     '--cron-interval',
-#     # type=datetime.time.fromisoformat,
-#     # default=datetime.datetime.now(),
-#     #TODO: add time filter
-#     help='Intreval of "cron-triggered" events'
-# )
+parser.add_argument(
+    '--cron-interval',
+    type=int,
+    default=60*60*24,
+    #TODO: add time filter
+    help='Intreval of "cron-triggered" events'
+)
 # TODO: know about interval and finish it
 
 parser.add_argument(
@@ -93,10 +96,10 @@ if CONF.debug:
 logging.debug("Arguments parsed:")
 logging.debug(CONF)
 
-xml_operator = xml_operations.XmlOperator()
-cloud_datastores = data_structures.Datastores()
 
 if CONF.output_type == "opennebulaxml":
+    xml_operator = xml_operations.XmlOperator()
+    cloud_datastores = data_structures.Datastores()
 
     for x in range(CONF.users_count):
 
@@ -145,24 +148,25 @@ if CONF.output_type == "opennebulaxml":
             xml_operator.output(cluster)
 
 else:
-    import generator
-    generator.main(CONF.start_time,
-                   10,
-                   CONF.count,
-                   CONF.users_count,
-                   CONF.max_objects*(-1+2*CONF.average_occupancy/100),
-                   CONF.max_objects,
-                   CONF.groups_count,
-                   CONF.cloud_name)
-    if CONF.mode == "vm" or CONF.flood:
-        for rec in generator.CloudRecord.all_records:
-            print(rec.get_msg())
-
-    if CONF.mode == "network" or CONF.flood:
-        for rec in generator.PublicIpUsageRecord.all_records:
-            print(rec.get_msg())
-
-    if CONF.mode == "storage" or CONF.flood:
-        for rec in generator.StorageRecord.all_records:
-            print(rec.get_ur())
+    from generator import Generator
+    gen = Generator(CONF.start_time,
+               CONF.cron_interval,
+               CONF.count,
+               CONF.users_count,
+               CONF.max_objects*(-1+2*CONF.average_occupancy/100),
+               CONF.max_objects,
+               CONF.groups_count,
+               CONF.cloud_name)
+    gen.generate_records()
+    # if CONF.mode == "vm" or CONF.flood:
+    #     for rec in generator.CloudRecord.all_records:
+    #         print(rec.get_msg())
+    #
+    # if CONF.mode == "network" or CONF.flood:
+    #     for rec in generator.PublicIpUsageRecord.all_records:
+    #         print(rec.get_msg())
+    #
+    # if CONF.mode == "storage" or CONF.flood:
+    #     for rec in generator.StorageRecord.all_records:
+    #         print(rec.get_ur())
 
