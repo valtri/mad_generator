@@ -56,10 +56,10 @@ class CloudRecord(Record):
         # Fields which will have an integer stored in them
         self._int_fields = [ "SuspendDuration", "WallDuration", "CpuDuration", "CpuCount",
                              "NetworkInbound", "NetworkOutbound", "PublicIPCount", "Memory",
-                             "Disk", "StorageUsage"]
-        #TODO suspend duration?
+                             "Disk", "StorageUsage", "StartTime", "EndTime"]
+
         self._float_fields = ['Benchmark']
-        self._datetime_fields = ["StartTime", "EndTime"]
+        self._datetime_fields = []
         CloudRecord.all_records.append(self)
 
     def _check_fields(self):
@@ -101,13 +101,9 @@ class CloudRecord(Record):
         if self._record_content['CpuCount'] is None:
             self._record_content['CpuCount'] = 0
 
-        # TODO do we have to check this?
-        # Check the values of StartTime and EndTime
-        # self._check_start_end_times()
-
-        
     def _check_start_end_times(self):
-        '''Checks the values of StartTime and EndTime in _record_content.
+        '''
+        Checks the values of StartTime and EndTime in _record_content.
         StartTime should be less than or equal to EndTime.
         Neither StartTime or EndTime should be zero.
         EndTime should not be in the future.
