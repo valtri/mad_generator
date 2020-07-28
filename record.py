@@ -129,7 +129,6 @@ class Record(object):
         Returns value converted to correct type if this is possible.
         Otherwise it raises an error.
         '''
-        #TODO pridat timestamp, duration
         try:
             # Convert any null equivalents to a None object
             if check_for_null(value):
@@ -183,6 +182,7 @@ class Record(object):
                     timestamp = int(value)
                     if timestamp == 0:
                         raise InvalidRecordException("Epoch time  mustn't be 0.")
+                    return timestamp
                 except ValueError:
                     raise InvalidRecordException("Cannot parse an integer from timestamp.")
 
@@ -316,8 +316,6 @@ class Record(object):
         # Check that all the required information is present.
         for key in self._mandatory_fields:
             if key not in contents:
-                print(type(self))
-                print(self._mandatory_fields)
                 raise InvalidRecordException("Mandatory field " + key + " not specified.")
             value = contents[key]
             if check_for_null(value):
@@ -338,8 +336,7 @@ class Record(object):
                 contents[key] = "None"
             if check_for_null(contents[key]):
                 contents[key] = "None"
-        
-        
+
         # Change the null values for integers to None (not 'None'!) -> NULL in the DB.
         for key in self._int_fields:
             try:
