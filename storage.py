@@ -25,6 +25,7 @@ import logging
 # get the relevant logger
 log = logging.getLogger(__name__)
 
+
 class StorageRecord(Record):
     '''
     Class to represent one storage record. 
@@ -36,7 +37,7 @@ class StorageRecord(Record):
     
     MANDATORY_FIELDS = ["RecordId", "CreateTime", "StorageSystem",
                          "ResourceCapacityUsed", "StartTime", "EndTime"]
-# "MeasureTime", "ValidDuration",
+    # "MeasureTime", "ValidDuration",
     # This list specifies the information that goes in the database.
     DB_FIELDS = ["RecordId", "CreateTime", "StorageSystem", "StorageShare",
                  "StorageMedia", "StorageClass", "FileCount", "DirectoryPath",
