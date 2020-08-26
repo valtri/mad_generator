@@ -35,15 +35,15 @@ class User:
                 "CloudComputeService": self.cloud_compute_service,
                 "CloudType": self.cloud_type,
                 "FQAN": "/Group"+ self.group_id +"/Role=NULL/Capability=NULL",
-                "Disk": 0,
-                "Memory": 0,
-                "PublicIPCount": 0,
+                "Disk": (2**30)*randint(50, 200),
+                "Memory": (2**30)*randint(1, 16),
+                "PublicIPCount": randint(0, 2),
                 "IPv4Count": 0,
                 "IPv6Count": 0,
                 "SuspendDuration": 0,
                 "CpuDuration": 0,
                 "WallDuration": 0,
-                "CpuCount": 0,
+                "CpuCount": randint(1, 8),
                 "StorageUsage": 0
                 })
             self.vms.append(cr)
