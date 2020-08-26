@@ -5,6 +5,8 @@ import xml_operations
 import data_structures
 import logging
 import random
+from math import floor, ceil
+from generator import Generator
 
 parser = argparse.ArgumentParser(description="MAD Generator, simulator of Cloud life.")
 
@@ -45,26 +47,31 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--records-per-file",
+    type=int,
+    default=500,
+    help="Number of records to be stored per file. Default=500",
+)
+
+parser.add_argument(
     '--cron-interval',
     type=int,
     default=60*60*24,
-    #TODO: add time filter
     help='Intreval of "cron-triggered" events'
 )
-# TODO: know about interval and finish it
 
 parser.add_argument(
     "--users-count", type=int, default=20, help="Users using simulated cloud"
-) #included
+)
 
 parser.add_argument(
     "--groups-count", type=int, default=7, help="Groups in simulated cloud"
-) #TODO include
+)
 
 parser.add_argument(
     "--cloud-name", type=str, default="MADCLOUD", help="name of the cloud"
 ) # SiteName/CloudType/CloudComputeService
-# TODO include
+
 
 parser.add_argument(
     "--mode",
@@ -107,7 +114,7 @@ if CONF.output_type == "opennebulaxml":
         print(user.uname)
         xml_operator.output(user)
 
-    #flood means generating all types of outputs i.e. image, cluster, host, vm
+    # flood means generating all types of outputs i.e. image, cluster, host, vm
     if CONF.flood:
 
         for x in range(random.randint(1, CONF.max_objects)):
@@ -146,27 +153,27 @@ if CONF.output_type == "opennebulaxml":
             cluster = cloud_data_types.Cluster()
 
             xml_operator.output(cluster)
-
 else:
-    from generator import Generator
-    gen = Generator(CONF.start_time,
-               CONF.cron_interval,
-               CONF.count,
-               CONF.users_count,
-               CONF.max_objects*(-1+2*CONF.average_occupancy/100),
-               CONF.max_objects,
-               CONF.groups_count,
-               CONF.cloud_name)
-    gen.generate_records()
-    # if CONF.mode == "vm" or CONF.flood:
-    #     for rec in generator.CloudRecord.all_records:
-    #         print(rec.get_msg())
-    #
-    # if CONF.mode == "network" or CONF.flood:
-    #     for rec in generator.PublicIpUsageRecord.all_records:
-    #         print(rec.get_msg())
-    #
-    # if CONF.mode == "storage" or CONF.flood:
-    #     for rec in generator.StorageRecord.all_records:
-    #         print(rec.get_ur())
+    # TODO ako rozumne obmedzit pocet masin?
+    gen = Generator(datetime.datetime.timestamp(CONF.start_time),
+                    CONF.cron_interval,
+                    CONF.count,
+                    CONF.users_count,
+                    int(floor((0.8 * CONF.average_occupancy / 100) * CONF.max_objects / CONF.users_count)),
+                    int(ceil((1.2 * CONF.average_occupancy / 100) * CONF.max_objects / CONF.users_count)),
+                    CONF.groups_count,
+                    CONF.cloud_name,
+                    CONF.records_per_file)
+
+    if CONF.flood:
+        gen.generate_cloud_records()
+        gen.generate_ip_records()
+        gen.generate_storage_records()
+    else:
+        if CONF.mode == "vm":
+            gen.generate_cloud_records()
+        if CONF.mode == "storage":
+            gen.generate_storage_records()
+        if CONF.mode == "network":
+            gen.generate_ip_records()
 

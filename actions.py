@@ -1,159 +1,133 @@
 from cloud import CloudRecord
 from random import randint, choice
-from storage import StorageRecord
-from public_ip import PublicIpUsageRecord
-from _datetime import datetime
 
 
-def get_storage_json(vm: CloudRecord, time: int):
-    return {"RecordId": vm.get_field("LocalUserId") + str(time),  # TODO random generate
-            "CreateTime": datetime.fromtimestamp(time),
-            "StorageSystem": "ss",
-            "StorageShare": "50",
-            "StorageMedia": "disk",
-            "FileCount": "1000",
-            "DirectoryPath": None,
-            "LocalUser": vm.get_field("LocalUserId"),
-            "LocalGroup": vm.get_field("LocalGroupId"),
-            "StartTime": datetime.fromtimestamp(time),  # TODO
-            "EndTime": datetime.fromtimestamp(time),  # TODO ako tu ma byt start a end
-            "ResourceCapacityUsed": vm.get_field("StorageUsage"),
-            "LogicalCapacityUsed": vm.get_field("StorageUsage"),
-            "ResourceCapacityAllocated": vm.get_field("StorageUsage"),
-            "Group": None,  # not sure what
-            "Role": None,  # neither here
-            "StorageClass": None,
-            "UserIdentity": vm.get_field("GlobalUserName")}
-
-
-def get_ip_json(vm: CloudRecord, time: int):
-    return {"MeasurementTime": time,
-            "SiteName": vm.get_field("SiteName"),
-            "CloudComputeService": vm.get_field("CloudComputeService"),
-            "CloudType": vm.get_field("CloudType"),
-            "LocalUser": vm.get_field("LocalUserId"),
-            "LocalGroup": vm.get_field("LocalGroupId"),
-            "GlobalUserName": vm.get_field("GlobalUserName"),
-            "FQAN": vm.get_field("FQAN"),
-            "IPVersion": "dunno", # TODO pouzijeme normalne version
-            "IPCount": vm.get_field("PublicIPCount")
-            }
-
-
-def start_machine(vm: CloudRecord, event_time: int): #DONE
+def start_machine(vm: CloudRecord, event_time: int) -> CloudRecord:
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
-    if vm.get_field("Status") == "suspended":
-        vm.set_field("SuspendDuration",
-                     vm.get_field("SuspendDuration") + (event_time - vm.get_field("SuspendTime")))
-    vm.set_field("Status", "started")
-    if vm.get_field("StartTime") is None:
-        vm.set_field("StartTime", event_time)
-    vm.set_field("CpuChange", event_time)
+    if new_record.get_field("Status") == "suspended":
+        new_record.set_field("SuspendDuration",
+                             new_record.get_field("SuspendDuration") + (event_time - new_record.get_field("SuspendTime")))
+    new_record.set_field("Status", "started")
+    if new_record.get_field("StartTime") is None:
+        new_record.set_field("StartTime", event_time)
+    new_record.set_field("CpuChange", event_time)
+    return new_record
 
 
-def finish_machine(vm: CloudRecord, event_time: int): # DONE
+def finish_machine(vm: CloudRecord, event_time: int) -> CloudRecord:
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
-    if vm.get_field("Status") == "started":
-        vm.set_field("WallDuration",
-                     vm.get_field("WallDuration") + (event_time - vm.get_field("CpuChange")))
-        vm.set_field("CpuDuration",
-                     vm.get_field("CpuDuration") +
-                     vm.get_field("CpuCount")*(event_time - vm.get_field("CpuChange")))
+    if new_record.get_field("Status") == "started":
+        new_record.set_field("WallDuration",
+                             new_record.get_field("WallDuration") + (event_time - new_record.get_field("CpuChange")))
+        new_record.set_field("CpuDuration",
+                             new_record.get_field("CpuDuration") +
+                             new_record.get_field("CpuCount")*(event_time - new_record.get_field("CpuChange")))
 
-    if vm.get_field("Status") == "suspended":
-        vm.set_field("SuspendDuration",
-                     vm.get_field("SuspendDuration") + (event_time - vm.get_field("SuspendTime")))
+    if new_record.get_field("Status") == "suspended":
+        new_record.set_field("SuspendDuration",
+                             new_record.get_field("SuspendDuration") + (event_time - new_record.get_field("SuspendTime")))
 
-    vm.set_field("Status", "completed")
-    vm.set_field("EndTime", event_time)
+    new_record.set_field("Status", "completed")
+    new_record.set_field("EndTime", event_time)
+    return new_record
 
 
-def suspend_machine(vm: CloudRecord, event_time: int):
+def suspend_machine(vm: CloudRecord, event_time: int) -> CloudRecord:
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
-    vm.set_field("Status", "suspended")
-    vm.set_field("SuspendTime", event_time)
-    if vm.get_field("StartTime") is not None: #todo premysliet
-        vm.set_field("WallDuration", (event_time - vm.get_field("CpuChange")))
-        vm.set_field("CpuDuration", vm.get_field("CpuDuration") + vm.get_field("WallDuration")*vm.get_field("CpuCount"))
+    new_record.set_field("Status", "suspended")
+    new_record.set_field("SuspendTime", event_time)
+    if new_record.get_field("StartTime") is not None:
+        new_record.set_field("WallDuration", (event_time - new_record.get_field("CpuChange")))
+        new_record.set_field("CpuDuration",
+                             new_record.get_field("CpuDuration") +
+                             new_record.get_field("WallDuration")*new_record.get_field("CpuCount"))
+    return new_record
 
 
-def allocate_ip(vm: CloudRecord, event_time: int):
+def allocate_ip(vm: CloudRecord, event_time: int) -> CloudRecord:
+    new_record = CloudRecord()
+    new_record.load_from_msg(vm.get_msg())
     version = choice(["4", "6"])
-    vm.set_field("IPv" + version + "Count", vm.get_field("IPv" + version + "Count") + randint(1,5))
-    vm.set_field("PublicIpCount", vm.get_field("IPv4Count") + vm.get_field("IPv6Count"))
+    new_record.set_field("IPv" + version + "Count", new_record.get_field("IPv" + version + "Count") + randint(1,5))
+    new_record.set_field("PublicIPCount", new_record.get_field("IPv4Count") + new_record.get_field("IPv6Count"))
+    return new_record
 
 
-def free_ip(vm: CloudRecord, event_time: int):
+def free_ip(vm: CloudRecord, event_time: int) -> CloudRecord:
+    new_record = CloudRecord()
+    new_record.load_from_msg(vm.get_msg())
     amount = randint(1, 5)
     version = choice(["4", "6"])
-    if amount > vm.get_field("IPv" + version + "Count"):
-        amount = vm.get_field("IPv" + version + "Count")
-    vm.set_field("IPv" + version + "Count", vm.get_field("IPv" + version + "Count") - amount)
-    vm.set_field("PublicIpCount", vm.get_field("IPv4Count") + vm.get_field("IPv6Count"))
+    if amount > new_record.get_field("IPv" + version + "Count"):
+        amount = new_record.get_field("IPv" + version + "Count")
+    new_record.set_field("IPv" + version + "Count", new_record.get_field("IPv" + version + "Count") - amount)
+    new_record.set_field("PublicIPCount", new_record.get_field("IPv4Count") + new_record.get_field("IPv6Count"))
+    return new_record
 
 
-def allocate_memory(vm:CloudRecord, event_time: int):
+def allocate_memory(vm: CloudRecord, event_time: int):
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
-    vm.set_field("Memory", vm.get_field("Memory") + (10**9)*randint(1,16))
+    new_record.set_field("Memory", new_record.get_field("Memory") + (10**9)*randint(1,16))
+    return new_record
 
 
-def free_memory(vm:CloudRecord, event_time: int):
+def free_memory(vm: CloudRecord, event_time: int) -> CloudRecord:
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
     amount = (10**9)*randint(1,16)
-    if amount > vm.get_field("Memory"):
-        amount = vm.get_field("Memory")
-    vm.set_field("Memory", vm.get_field("Memory") - amount)
+    if amount > new_record.get_field("Memory"):
+        amount = new_record.get_field("Memory")
+    new_record.set_field("Memory", new_record.get_field("Memory") - amount)
+    return new_record
 
 
-# TODO zle
-def allocate_storage(vm: CloudRecord, event_time: int):
-    st = StorageRecord()
+def allocate_storage(vm: CloudRecord, event_time: int) -> CloudRecord:
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
     amount = (10**9)*randint(5, 1000)
-    vm.set_field("StorageUsage", vm.get_field("StorageUsage") + amount)
-    st.set_all(get_storage_json(vm, event_time))
+    new_record.set_field("StorageUsage", new_record.get_field("StorageUsage") + amount)
+    return new_record
 
 
-# TODO zle, staci len vytvorit a zmazat ten storage
-def free_storage(vm: CloudRecord, event_time: int):
-    st = StorageRecord()
+def free_storage(vm: CloudRecord, event_time: int) -> CloudRecord:
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
 
     amount = (10 ** 9) * randint(5, 1000)
-    if amount > vm.get_field("StorageUsage"):
-        amount = vm.get_field("StorageUsage")
-    vm.set_field("StorageUsage", vm.get_field("StorageUsage") - amount)
-    st.set_all(get_storage_json(vm, event_time))
+    if amount > new_record.get_field("StorageUsage"):
+        amount = new_record.get_field("StorageUsage")
+    new_record.set_field("StorageUsage", int(new_record.get_field("StorageUsage")) - amount)
+    return new_record
 
 
-def allocate_cpu(vm: CloudRecord, event_time: int):
-    amount = randint(1,32)
+def allocate_cpu(vm: CloudRecord, event_time: int) -> CloudRecord:
+    amount = randint(1, 32)
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
-    if vm.get_field("Status") == "started":
-        vm.set_field("WallDuration", vm.get_field("WallDuration") + (event_time - vm.get_field("CpuChange"))) #nvm
-        vm.set_field("CpuDuration", vm.get_field("CpuDuration")
-                     + (event_time - vm.get_field("CpuChange"))*vm.get_field("CpuCount"))
-    vm.set_field("CpuChange", event_time)
-    vm.set_field("CpuCount", vm.get_field("CpuCount") + amount)
+    if new_record.get_field("Status") == "started":
+        new_record.set_field("WallDuration", new_record.get_field("WallDuration") + (event_time - new_record.get_field("CpuChange")))
+        new_record.set_field("CpuDuration", new_record.get_field("CpuDuration")
+                             + (event_time - new_record.get_field("CpuChange"))*new_record.get_field("CpuCount"))
+    new_record.set_field("CpuChange", event_time)
+    new_record.set_field("CpuCount", new_record.get_field("CpuCount") + amount)
+    return new_record
 
 
-def free_cpu(vm: CloudRecord, event_time: int):
+def free_cpu(vm: CloudRecord, event_time: int) -> CloudRecord:
     new_record = CloudRecord()
     new_record.load_from_msg(vm.get_msg())
     amount = randint(1, 32)
-    if amount > vm.get_field("CpuCount"):
-        amount = vm.get_field("CpuCount")
-    if vm.get_field("Status") == "started":
-        vm.set_field("WallDuration", vm.get_field("WallDuration") + (event_time - vm.get_field("StartTime")))
-        vm.set_field("CpuDuration", vm.get_field("CpuDuration")
-                     + (event_time - vm.get_field("CpuChange"))*vm.get_field("CpuCount"))
-    vm.set_field("CpuChange", event_time)
-    vm.set_field("CpuCount", vm.get_field("CpuCount") - amount)
+    if amount > new_record.get_field("CpuCount"):
+        amount = new_record.get_field("CpuCount")
+    if new_record.get_field("Status") == "started":
+        new_record.set_field("WallDuration", new_record.get_field("WallDuration") +
+                             (event_time - new_record.get_field("StartTime")))
+        new_record.set_field("CpuDuration", new_record.get_field("CpuDuration")
+                             + (event_time - new_record.get_field("CpuChange"))*new_record.get_field("CpuCount"))
+    new_record.set_field("CpuChange", event_time)
+    new_record.set_field("CpuCount", vm.get_field("CpuCount") - amount)
+    return new_record

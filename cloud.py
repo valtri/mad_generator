@@ -29,7 +29,8 @@ class CloudRecord(Record):
     It stores its information in a dictionary self._record_content.  The keys 
     are in the same format as in the messages, and are case-sensitive.
     '''
-    all_records = []
+    # all_records = []
+
     def __init__(self):
         '''Provide the necessary lists containing message information.'''
         
@@ -45,18 +46,20 @@ class CloudRecord(Record):
                             "WallDuration", "CpuDuration", "CpuCount",
                             "NetworkType", "NetworkInbound", "NetworkOutbound", "PublicIPCount",
                             "Memory", "Disk", "BenchmarkType", "Benchmark",
-                            "StorageRecordId", "ImageId", "CloudType"]
+                            "StorageRecordId", "ImageId", "CloudType", "IPv4Count", "IPv6Count", 'SuspendTime',
+                            "StorageUsage", "CpuChange"]
         
         # This list specifies the information that goes in the database.
-        self._db_fields = self._msg_fields[:9] + ['VO', 'VOGroup', 'VORole', 'SuspendTime', "StorageUsage", "CpuChange"] + self._msg_fields[9:]
+        self._db_fields = self._msg_fields[:9] + ['VO', 'VOGroup', 'VORole'] + self._msg_fields[9:]
         self._all_fields = self._db_fields
         
-        self._ignored_fields = ["UpdateTime", "SuspendTime", "StorageUsage", "CpuChange"]
+        self._ignored_fields = ["UpdateTime", "StorageUsage", "CpuChange", "IPv4Count", "IPv6Count"]
         
         # Fields which will have an integer stored in them
         self._int_fields = [ "SuspendDuration", "WallDuration", "CpuDuration", "CpuCount",
                              "NetworkInbound", "NetworkOutbound", "PublicIPCount", "Memory",
-                             "Disk", "StorageUsage", "StartTime", "EndTime"]
+                             "Disk", "StorageUsage", "StartTime", "EndTime", "IPv4Count", "IPv6Count", "CpuChange",
+                             "SuspendTime"]
 
         self._float_fields = ['Benchmark']
         self._datetime_fields = []
@@ -128,3 +131,5 @@ class CloudRecord(Record):
         except ValueError:
             raise InvalidRecordException("Cannot parse an integer from StartTime or EndTime.")
 
+    def output(self):
+        return self.get_msg()

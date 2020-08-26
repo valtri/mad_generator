@@ -50,6 +50,7 @@ class Record(object):
     # used to protect user DN information
     DN_FIELD = 'GlobalUserName'
     WITHHELD_DN = 'withheld'
+    all_records = []
 
     def __init__(self):
         '''
@@ -274,6 +275,40 @@ class Record(object):
 
         return msg
 
+    def get_json(self, withhold_dns=False):
+        self._check_fields()
+        # for certain records, we can replace GlobalUserName with 'withheld'
+        # to protect private data
+        dn = self.get_field(Record.DN_FIELD)
+        if dn is not None and withhold_dns:
+            self.set_field(Record.DN_FIELD, Record.WITHHELD_DN)
+
+        json = {}
+        for key in self._msg_fields:
+            # reset value each time.
+            value = None
+            try:
+                if key in self._datetime_fields:
+                    # convert datetime to epoch time for the message
+                    # assume that the datetime is UTC
+                    ttuple = self._record_content[key].timetuple()
+                    value = str(int(calendar.timegm(ttuple)))
+                else:
+                    value = str(self._record_content[key])  # make sure we have a string
+            except (KeyError, AttributeError):
+                # It's only a problem if a mandatory field is missing;
+                # otherwise just don't write the line to the message.
+                if key in self._mandatory_fields:
+                    raise InvalidRecordException('No mandatory key: %s found' % key)
+            if value is None or value.isspace() or value == "":
+                # Don't write a line to the message unless there's something
+                # to say.
+                continue
+
+            # otherwise, add the line
+            json[key] = value
+
+        return json
 
     def get_db_tuple(self, source=None):
         '''
@@ -303,6 +338,9 @@ class Record(object):
 
         # create a tuple from all the relevant info
         return tuple(l)
+
+    def output(self):
+        pass
 
     ##########################################################################
     # Private methods below
