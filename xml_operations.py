@@ -16,7 +16,7 @@ class XmlOperator:
             + "-"
             + str(random.randint(1, 1000000))
         )
-        if os.path.exists("xml_outputs/" + self.output_base_directory_name) == False:
+        if not os.path.exists("xml_outputs/" + self.output_base_directory_name):
             os.mkdir("xml_outputs/" + self.output_base_directory_name)
             logging.debug(
                 "xml_outputs/" + self.output_base_directory_name + " was created"
