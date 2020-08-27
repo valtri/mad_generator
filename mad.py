@@ -154,7 +154,6 @@ if CONF.output_type == "opennebulaxml":
 
             xml_operator.output(cluster)
 else:
-    # TODO ako rozumne obmedzit pocet masin?
     gen = Generator(datetime.datetime.timestamp(CONF.start_time),
                     CONF.cron_interval,
                     CONF.count,
@@ -166,14 +165,18 @@ else:
                     CONF.records_per_file)
 
     if CONF.flood:
+        logging.debug("FLOOD in record mode")
         gen.generate_cloud_records()
         gen.generate_ip_records()
         gen.generate_storage_records()
     else:
         if CONF.mode == "vm":
+            logging.debug("Generating VM records")
             gen.generate_cloud_records()
         if CONF.mode == "storage":
+            logging.debug("Generating Storage records")
             gen.generate_storage_records()
         if CONF.mode == "network":
+            logging.debug("Generating Network records")
             gen.generate_ip_records()
 
