@@ -2,6 +2,10 @@ from record import Record
 
 
 class PublicIpUsageRecord(Record):
+    """
+    Class to represent one public ip record.
+
+    """
     all_records = []
 
     def __init__(self):

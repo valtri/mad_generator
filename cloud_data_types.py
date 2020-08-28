@@ -1,10 +1,8 @@
 import uuid
-from shutil import copyfile
 import random
 import time
 import string
 import logging
-import data_structures
 import helper
 
 

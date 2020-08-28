@@ -6,10 +6,10 @@ from random import choice, choices, randint
 from time import time
 
 from cloud import CloudRecord
-from events import start_machine, suspend_machine, finish_machine, allocate_ip, free_ip, allocate_cpu, free_cpu, \
+from Resource.events import start_machine, suspend_machine, finish_machine, allocate_ip, free_ip, allocate_cpu, free_cpu, \
     allocate_memory, free_memory, allocate_storage, free_storage
-from public_ip import PublicIpUsageRecord
-from storage import StorageRecord
+from Resource.public_ip import PublicIpUsageRecord
+from Resource.storage import StorageRecord
 
 
 class User:
