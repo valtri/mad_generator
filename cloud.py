@@ -1,0 +1,135 @@
+'''
+   Copyright (C) 2011 STFC
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+   
+@author Will Rogers
+'''
+
+from record import Record, InvalidRecordException
+from parsing_utils import parse_fqan
+from datetime import datetime, timedelta
+
+
+class CloudRecord(Record):
+    '''
+    Class to represent one cloud record. 
+    
+    It knows about the structure of the MySQL table and the message format.
+    It stores its information in a dictionary self._record_content.  The keys 
+    are in the same format as in the messages, and are case-sensitive.
+    '''
+    # all_records = []
+
+    def __init__(self):
+        '''Provide the necessary lists containing message information.'''
+        
+        Record.__init__(self)
+        
+        # Fields which are required by the message format.
+        self._mandatory_fields = ["VMUUID", "SiteName", "MachineName"]
+            
+        # This list allows us to specify the order of lines when we construct records.
+        self._msg_fields = ["VMUUID", "SiteName", "CloudComputeService", "MachineName",
+                            "LocalUserId", "LocalGroupId", "GlobalUserName", "FQAN",
+                            "Status", "StartTime", "EndTime", "SuspendDuration",
+                            "WallDuration", "CpuDuration", "CpuCount",
+                            "NetworkType", "NetworkInbound", "NetworkOutbound", "PublicIPCount",
+                            "Memory", "Disk", "BenchmarkType", "Benchmark",
+                            "StorageRecordId", "ImageId", "CloudType", "IPv4Count", "IPv6Count", 'SuspendTime',
+                            "StorageUsage", "CpuChange"]
+        
+        # This list specifies the information that goes in the database.
+        self._db_fields = self._msg_fields[:9] + ['VO', 'VOGroup', 'VORole'] + self._msg_fields[9:]
+        self._all_fields = self._db_fields
+        
+        self._ignored_fields = ["UpdateTime", "StorageUsage", "CpuChange", "IPv4Count", "IPv6Count"]
+        
+        # Fields which will have an integer stored in them
+        self._int_fields = [ "SuspendDuration", "WallDuration", "CpuDuration", "CpuCount",
+                             "NetworkInbound", "NetworkOutbound", "PublicIPCount", "Memory",
+                             "Disk", "StorageUsage", "StartTime", "EndTime", "IPv4Count", "IPv6Count", "CpuChange",
+                             "SuspendTime"]
+
+        self._float_fields = ['Benchmark']
+        self._datetime_fields = []
+        CloudRecord.all_records.append(self)
+
+    def _check_fields(self):
+        '''
+        Add extra checks to those made in every record.
+        '''
+        # First, call the parent's version.
+        Record._check_fields(self)
+        
+        # Extract the relevant information from the user fqan.
+        # Keep the fqan itself as other methods in the class use it.
+        role, group, vo = parse_fqan(self._record_content['FQAN'])
+        # We can't / don't put NULL in the database, so we use 'None'
+        if role is None:
+            role = 'None'
+        if group is None:
+            group = 'None'
+        if vo is None:
+            vo = 'None'
+
+        if self._record_content['Benchmark'] is None:
+            # If Benchmark is not present in the original record the
+            # parent Record class level type checking will set it to
+            # None. We can't pass None as a Benchmark as the field is
+            # NOT NULL in the database, so we set it to something
+            # meaningful. In this case the float 0.0.
+            self._record_content['Benchmark'] = 0.0
+
+        self._record_content['VORole'] = role
+        self._record_content['VOGroup'] = group
+        self._record_content['VO'] = vo
+
+        # If the message was missing a CpuCount, assume it used
+        # zero Cpus, to prevent a NULL being written into the column
+        # in the CloudRecords tables.
+        # Doing so would be a problem despite the CloudRecords
+        # table allowing it because the CloudSummaries table
+        # doesn't allow it, creating a problem at summariser time.
+        if self._record_content['CpuCount'] is None:
+            self._record_content['CpuCount'] = 0
+
+    def _check_start_end_times(self):
+        '''
+        Checks the values of StartTime and EndTime in _record_content.
+        StartTime should be less than or equal to EndTime.
+        Neither StartTime or EndTime should be zero.
+        EndTime should not be in the future.
+        
+        This is merely factored out for simplicity.
+        '''
+        try:
+            start = int(self._record_content['StartTime'])
+            end = int(self._record_content['EndTime'])
+            if end < start:
+                raise InvalidRecordException("EndTime is before StartTime.")
+            
+            if start == 0 or end == 0:
+                raise InvalidRecordException("Epoch times StartTime and EndTime mustn't be 0.")
+            
+            now = datetime.now()
+            # add two days to prevent timezone problems
+            tomorrow = now + timedelta(2)
+            if datetime.fromtimestamp(end) > tomorrow:
+                raise InvalidRecordException("Epoch time " + str(end) + " is in the future.")
+            
+        except ValueError:
+            raise InvalidRecordException("Cannot parse an integer from StartTime or EndTime.")
+
+    def output(self):
+        return self.get_msg()
