@@ -82,6 +82,9 @@ class Generator:
             end_time = time()
         self.end_time = int(end_time)
 
+        import random
+        self.record_path = "records_output-" + str(round(time())) + "-" + str(random.randint(1, 1000000))
+
     def _generate_cron_intervals(self):
         return [self.start_time + i * self.cron_interval
                 for i in range(1, int((self.end_time - self.start_time) / self.cron_interval))]
@@ -249,9 +252,13 @@ class Generator:
         """
         count = 0
         id = 0
-        if not os.path.exists(record_class.__name__ + "/"):
-            os.mkdir(record_class.__name__ + "/")
-        f = open(record_class.__name__ + "/" + "{0:014b}".format(id), "w")
+        if not os.path.exists("records/" + self.record_path + "/"):
+            os.mkdir("records/" + self.record_path + "/")
+
+        if not os.path.exists("records/" + self.record_path + "/" + record_class.__name__ + "/"):
+            os.mkdir("records/" + self.record_path + "/" + record_class.__name__ + "/")
+
+        f = open("records/" + self.record_path + "/" + record_class.__name__ + "/" + "{0:014d}".format(id), "w")
 
         if record_class == CloudRecord:
             f.write("APEL-cloud-message: v0.4\n")
@@ -269,7 +276,7 @@ class Generator:
                 if record_class == StorageRecord:
                     f.write("</STORAGES>")
 
-                f = open(record_class.__name__ + "/" + "{0:014b}".format(id), "w")
+                f = open("records/" + self.record_path + "/" + record_class.__name__ + "/" + "{0:014d}".format(id), "w")
                 if record_class == CloudRecord:
                     f.write("APEL-cloud-message: v0.4\n")
                 if record_class == PublicIpUsageRecord:
