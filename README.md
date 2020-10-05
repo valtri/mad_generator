@@ -30,7 +30,7 @@ optional:
 python3 mad.py --output-type=opennebulaxml --count=5 --max-objects=10 --mode=vm -f
 
 ```
-##Results
+## Results
  
 OpenNebula records:
 
