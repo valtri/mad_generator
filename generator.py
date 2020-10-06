@@ -251,38 +251,23 @@ class Generator:
         :return: None
         """
         count = 0
-        id = 0
-        if not os.path.exists("records/" + self.record_path + "/"):
-            os.mkdir("records/" + self.record_path + "/")
+        file_id = 0
 
-        if not os.path.exists("records/" + self.record_path + "/" + record_class.__name__ + "/"):
-            os.mkdir("records/" + self.record_path + "/" + record_class.__name__ + "/")
+        path = os.path.join("records", self.record_path, record_class.__name__)
+        os.makedirs(path, exist_ok=False)
 
-        f = open("records/" + self.record_path + "/" + record_class.__name__ + "/" + "{0:014d}".format(id), "w")
-
-        if record_class == CloudRecord:
-            f.write("APEL-cloud-message: v0.4\n")
-        if record_class == PublicIpUsageRecord:
-            f.write('{"Ips": [\n')
-        if record_class == StorageRecord:
-            f.write('<?xml version="1.0" encoding="UTF-8"?>\n\n<STORAGES>')
+        f = self.init_file(file_id, path, record_class)
 
         for r in record_class.all_records:
             if count >= per_file:
                 count = 0
-                id += 1
+                file_id += 1
                 if record_class == PublicIpUsageRecord:
                     f.write("]}")
                 if record_class == StorageRecord:
                     f.write("</STORAGES>")
 
-                f = open("records/" + self.record_path + "/" + record_class.__name__ + "/" + "{0:014d}".format(id), "w")
-                if record_class == CloudRecord:
-                    f.write("APEL-cloud-message: v0.4\n")
-                if record_class == PublicIpUsageRecord:
-                    f.write('{"Ips": [\n')
-                if record_class == StorageRecord:
-                    f.write('<?xml version="1.0" encoding="UTF-8"?>\n\n<STORAGES>')
+                f = self.init_file(file_id, path, record_class)
             count += 1
             if record_class == CloudRecord:
                 f.write("\n")
@@ -296,3 +281,14 @@ class Generator:
                 f.write("]}")
             if record_class == StorageRecord:
                 f.write("</STORAGES>")
+
+    @staticmethod
+    def init_file(file, path, record_class):
+        f = open(os.path.join(path, "{0:014d}".format(file)), "w")
+        if record_class == CloudRecord:
+            f.write("APEL-cloud-message: v0.4\n")
+        if record_class == PublicIpUsageRecord:
+            f.write('{"Ips": [\n')
+        if record_class == StorageRecord:
+            f.write('<?xml version="1.0" encoding="UTF-8"?>\n\n<STORAGES>')
+        return f
