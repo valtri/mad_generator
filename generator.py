@@ -265,7 +265,7 @@ class Generator:
                 if record_class == PublicIpUsageRecord:
                     f.write("]}")
                 if record_class == StorageRecord:
-                    f.write("</STORAGES>")
+                    f.write("</StorageUsageRecords>")
 
                 f = self.init_file(file_id, path, record_class)
             count += 1
@@ -280,7 +280,7 @@ class Generator:
             if record_class == PublicIpUsageRecord:
                 f.write("]}")
             if record_class == StorageRecord:
-                f.write("</STORAGES>")
+                f.write("</StorageUsageRecords>")
 
     @staticmethod
     def init_file(file, path, record_class):
@@ -290,5 +290,5 @@ class Generator:
         if record_class == PublicIpUsageRecord:
             f.write('{"Ips": [\n')
         if record_class == StorageRecord:
-            f.write('<?xml version="1.0" encoding="UTF-8"?>\n\n<STORAGES>')
+            f.write('<?xml version="1.0" encoding="UTF-8"?>\n\n<StorageUsageRecords xmlns="%s" xmlns:sr="%s">\n' % (StorageRecord.NAMESPACE, StorageRecord.NAMESPACE))
         return f

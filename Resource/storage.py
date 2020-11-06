@@ -46,6 +46,7 @@ class StorageRecord(Record):
                  "START_TIME", "END_TIME", "RESOURCE_CAPACITY_ALLOCATED"]
     ALL_FIELDS = DB_FIELDS
     all_records = []
+    NAMESPACE = 'http://eu-emi.eu/namespaces/2011/02/storagerecord'
 
     def __init__(self):
         '''Provide the necessary lists containing message information.'''
@@ -101,51 +102,49 @@ class StorageRecord(Record):
         del withhold_dns  # Unused
 
         doc = Document()
-        ur = doc.createElement('STORAGE')
-
-        record_id = self.get_field('RECORD_ID')
-        rec_id = doc.createElement('RECORD_ID')
-        rec_id.appendChild(doc.createTextNode(record_id))
-        ur.appendChild(rec_id)
+        ur = doc.createElement('StorageUsageRecord')
 
         create_time_text = time.strftime('%Y-%m-%dT%H:%M:%SZ', self.get_field('CREATE_TIME').timetuple())
 
-        ct = doc.createElement('CREATE_TIME')
-        ct.appendChild(doc.createTextNode(create_time_text))
-        ur.appendChild(ct)
+        record_id = self.get_field('RECORD_ID')
+        rec_id = doc.createElement('RecordIdentity')
+        rec_id.setAttribute('sr:recordId', record_id)
+        rec_id.setAttribute('sr:createTime', create_time_text)
+        rec_id.appendChild(doc.createTextNode(record_id))
+        ur.appendChild(rec_id)
 
         storage_system = self.get_field('STORAGE_SYSTEM')
-        s_system = doc.createElement('STORAGE_SYSTEM')
+        s_system = doc.createElement('StorageSystem')
         s_system.appendChild(doc.createTextNode(storage_system))
         ur.appendChild(s_system)
 
         if self.get_field('STORAGE_SHARE') is not None:
             storage_share = self.get_field('STORAGE_SHARE')
-            s_share = doc.createElement('STORAGE_SHARE')
+            s_share = doc.createElement('StorageShare')
             s_share.appendChild(doc.createTextNode(storage_share))
             ur.appendChild(s_share)
 
         if self.get_field('STORAGE_MEDIA') is not None:
             storage_media = self.get_field('STORAGE_MEDIA')
-            s_media = doc.createElement('STORAGE_MEDIA')
+            s_media = doc.createElement('StorageMedia')
             s_media.appendChild(doc.createTextNode(storage_media))
             ur.appendChild(s_media)
 
         if self.get_field('STORAGE_CLASS') is not None:
             storage_class = self.get_field('STORAGE_CLASS')
-            s_class = doc.createElement('STORAGE_CLASS')
+            s_class = doc.createElement('StorageClass')
             s_class.appendChild(doc.createTextNode(storage_class))
             ur.appendChild(s_class)
 
         if self.get_field('FILE_COUNT') is not None:
             file_count = self.get_field('FILE_COUNT')
-            f_count = doc.createElement('FILE_COUNT')
+            f_count = doc.createElement('FileCount')
             f_count.appendChild(doc.createTextNode(str(file_count)))
             ur.appendChild(f_count)
 
         if self.get_field('DIRECTORY_PATH') is not None:
             directory_path = self.get_field('DIRECTORY_PATH')
-            d_path = doc.createElement('DIRECTORY_PATH')
+            d_path = doc.createElement('DirectoryPath')
             d_path.appendChild(doc.createTextNode(directory_path))
             ur.appendChild(d_path)
 
@@ -153,63 +152,63 @@ class StorageRecord(Record):
 
         if self.get_field('LOCAL_USER') is not None:
             local_user = self.get_field('LOCAL_USER')
-            l_user = doc.createElement('LOCAL_USER')
+            l_user = doc.createElement('LocalUser')
             l_user.appendChild(doc.createTextNode(local_user))
             ur.appendChild(l_user)
 
         if self.get_field('LOCAL_GROUP') is not None:
             local_group = self.get_field('LOCAL_GROUP')
-            l_group = doc.createElement('LOCAL_GROUP')
+            l_group = doc.createElement('LocalGroup')
             l_group.appendChild(doc.createTextNode(local_group))
             ur.appendChild(l_group)
 
         if self.get_field('USER_IDENTITY') is not None:
             user_identity = self.get_field('USER_IDENTITY')
-            u_identity = doc.createElement('USER_IDENTITY')
+            u_identity = doc.createElement('UserIdentity')
             u_identity.appendChild(doc.createTextNode(user_identity))
             ur.appendChild(u_identity)
 
         if self.get_field('GROUP') is not None:
             group_field = self.get_field('GROUP')
-            group_node = doc.createElement('GROUP')
+            group_node = doc.createElement('Group')
             group_node.appendChild(doc.createTextNode(group_field))
             ur.appendChild(group_node)
 
         if self.get_field('GROUP_ATTRIBUTE') is not None:
             group_field = self.get_field('GROUP_ATTRIBUTE')
-            group_node = doc.createElement('GROUP_ATTRIBUTE')
+            group_node = doc.createElement('GroupAttribute')
             group_node.appendChild(doc.createTextNode(group_field))
             ur.appendChild(group_node)
 
         if self.get_field('GROUP_ATTRIBUTE_TYPE') is not None:
-            sub_attr = doc.createElement('GROUP_ATTRIBUTE_TYPE')
-            sub_attr.setAttribute('GROUP_ATTRIBUTE_TYPE', 'subgroup')
-            sub_attr.appendChild(doc.createTextNode(self.get_field('GROUP_ATTRIBUTE_TYPE')))
+            sub_attr = doc.createElement('GroupAttributeType')
+            sub_attr.setAttribute('sr:GroupAttributeType', 'subgroup')
+            sub_attr.appendChild(doc.createTextNode(self.get_field('GroupAttributeType')))
             ur.appendChild(sub_attr)
 
         start_time_text = time.strftime('%Y-%m-%dT%H:%M:%SZ', self.get_field('START_TIME').timetuple())
-        m_time = doc.createElement('START_TIME')
+        m_time = doc.createElement('StartTime')
         m_time.appendChild(doc.createTextNode(start_time_text))
         ur.appendChild(m_time)
 
         end_time_text = time.strftime('%Y-%m-%dT%H:%M:%SZ', self.get_field('END_TIME').timetuple())
-        m_time = doc.createElement('END_TIME')
+        m_time = doc.createElement('EndTime')
         m_time.appendChild(doc.createTextNode(end_time_text))
         ur.appendChild(m_time)
 
         resource_capacity_used = self.get_field('RESOURCE_CAPACITY_USED')
-        r_capacity_used = doc.createElement('RESOURCE_CAPACITY_USED')
+        r_capacity_used = doc.createElement('ResourceCapacityUsed')
         r_capacity_used.appendChild(doc.createTextNode(str(resource_capacity_used)))
         ur.appendChild(r_capacity_used)
 
         resource_capacity_allocated = self.get_field('RESOURCE_CAPACITY_ALLOCATED')
-        r_capacity_allocated = doc.createElement('RESOURCE_CAPACITY_ALLOCATED')
+        r_capacity_allocated = doc.createElement('ResourceCapacityAllocated')
         r_capacity_allocated.appendChild(doc.createTextNode(str(resource_capacity_allocated)))
         ur.appendChild(r_capacity_allocated)
 
         if self.get_field('LOGICAL_CAPACITY_USED') is not None:
             logical_capacity_used = self.get_field('LOGICAL_CAPACITY_USED')
-            l_capacity_used = doc.createElement('LOGICAL_CAPACITY_USED')
+            l_capacity_used = doc.createElement('LogicalCapacityUsed')
             l_capacity_used.appendChild(doc.createTextNode(str(logical_capacity_used)))
             ur.appendChild(l_capacity_used)
 
